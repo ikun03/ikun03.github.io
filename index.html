@@ -1,22 +1,7 @@
 <!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-    h1 {
-        color: lightseagreen;
-    }
-
-    .pixel_text {
-        font-family: "Press Start 2P", "Times New Roman",serif;
-        font-size: 14px;
-        color: lightseagreen;
-        line-height: 25px;
-    }
-
-    body {
-        background: mintcream;
-    }
-</style>
+<link rel="stylesheet" href="stylesheets/default_style.css">
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,13 +11,23 @@
 <h1 class="pixel_text">
     Hi, This is me Kunal. Welcome to my homepage.
 </h1>
-<p class="pixel_text">
-    I am a 2nd Year Graduate Student in Computer Science at Rochester Institute of Technology. My interests lie in the domain of Computer Graphics and
+<h2 style="color: red"></h2>
+<p class="normal_text">
+    I am a 2nd year computer science graduate student(MS) at Rochester Institute of Technology. My interests lie in the
+    domain of Computer Graphics and
     Artificial Intelligence. You can check out my work on the sites below:
 </p>
-<a href="https://github.com/ikun03">
-    <i class="fa fa-github" style="font-size:48px;color: lightseagreen">&nbsp;</i></a>
-<a href="https://www.linkedin.com/in/kunal-shitut-311842100/">
-    <i class="fa fa-linkedin-square" style="font-size: 48px;color: lightseagreen"></i></a>
+<div id="something" style="line-height: 30px">
+    <a href="framework/animframe.html">Framework here</a>
+    <br>
+    <a href="https://github.com/ikun03">
+        <i class="fa fa-github" style="font-size:48px;color: lightseagreen">&nbsp;</i></a>
+    <a href="https://www.linkedin.com/in/kunal-shitut-311842100/">
+        <i class="fa fa-linkedin-square" style="font-size: 48px;color: lightseagreen"></i></a>
+</div>
+
+
+<!--The reason we load javascript at the end is so that it work with the html elements that it is intended to work with.-->
+<script src="scripts/main.js"></script>
 </body>
 </html>

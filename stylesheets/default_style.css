@@ -1,0 +1,51 @@
+@font-face {
+    font-family: "Computer Modern";
+    src: url('http://mirrors.ctan.org/fonts/cm-unicode/fonts/otf/cmunss.otf');
+}
+
+@font-face {
+    font-family: "Computer Modern";
+    src: url('http://mirrors.ctan.org/fonts/cm-unicode/fonts/otf/cmunsx.otf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Computer Modern";
+    src: url('http://mirrors.ctan.org/fonts/cm-unicode/fonts/otf/cmunsi.otf');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Computer Modern";
+    src: url('http://mirrors.ctan.org/fonts/cm-unicode/fonts/otf/cmunbxo.otf');
+    font-weight: bold;
+    font-style: italic;
+}
+
+h1 {
+    color: lightseagreen;
+}
+
+.pixel_text {
+    font-family: "Press Start 2P", "Times New Roman", serif;
+    font-size: medium;
+    color: lightseagreen;
+    line-height: 25px;
+}
+
+.normal_text {
+    font-family: "Computer Modern", "Times New Roman", serif;
+    font-size: large;
+    color: lightseagreen;
+    line-height: 25px;
+}
+
+body {
+    background: mintcream;
+}
+
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
