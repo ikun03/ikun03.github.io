@@ -49,3 +49,11 @@ img {
     margin-left: auto;
     margin-right: auto;
 }
+
+canvas {
+    width: 50vw;
+    height: 50vh;
+    display: block;
+    background: black;
+
+}
