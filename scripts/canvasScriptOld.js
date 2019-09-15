@@ -356,9 +356,20 @@ function main() {
         // var count = 16 * 6;
         // gl.drawArrays(primitiveType, offset, count);
 
+        //Compute the position of the first F
+        var fPosition = [radius, 0, 0];
         //This are the changes made for the camera
+        //Use the matrix math to compute a position on the circle
         var cameraMatrix = m4.yRotation(degToRad(0));
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, radius * 1.5);
+        var cameraPosition = [
+            cameraMatrix[12],
+            cameraMatrix[13],
+            cameraMatrix[14],
+        ];
+        var up = [0, 1, 0];
+        //Compute the camera's matrix using look at.
+        var cameraMatrix = m4.lookAt(cameraPosition, fPosition, up);
         //Make a view matrix from the camera matrix
         var viewMatrix = m4.inverse(cameraMatrix);
         //move the projection space to view space(the space in front of the camera)
@@ -378,6 +389,26 @@ function main() {
             var count = 16 * 6;
             gl.drawArrays(primitiveType, offset, count);
         }
+    }
+}
+
+function cross(a, b) {
+    return [a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]];
+}
+
+function subtractVectors(a, b) {
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function normalize(v) {
+    var length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    // make sure we don't divide by 0.
+    if (length > 0.00001) {
+        return [v[0] / length, v[1] / length, v[2] / length];
+    } else {
+        return [0, 0, 0];
     }
 }
 
@@ -795,7 +826,23 @@ var m4 = {
             }
         }
         return dst;
-    }
+    },
+    lookAt: function (cameraPosition, target, up) {
+        var zAxis = normalize(
+            subtractVectors(cameraPosition, target));
+        var xAxis = normalize(cross(up, zAxis));
+        var yAxis = normalize(cross(zAxis, xAxis));
+
+        return [
+            xAxis[0], xAxis[1], xAxis[2], 0,
+            yAxis[0], yAxis[1], yAxis[2], 0,
+            zAxis[0], zAxis[1], zAxis[2], 0,
+            cameraPosition[0],
+            cameraPosition[1],
+            cameraPosition[2],
+            1,
+        ];
+    },
 };
 
 function updatePosition(index) {
