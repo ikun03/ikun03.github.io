@@ -49,8 +49,19 @@ img {
     margin-left: auto;
     margin-right: auto;
 }
+
+/*canvas {*/
+/*    width: 50vw;*/
+/*    height: 50vh;*/
+/*    display: block;*/
+/*}*/
+
 canvas {
-    width: 100vw;
-    height: 100vh;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-top: 50px;
+    margin-right: auto;
     display: block;
+    border: 2px solid lightseagreen;
 }
