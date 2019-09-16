@@ -1,4 +1,6 @@
 "use strict";
+//The following framework code was taken from
+//the website - https://webgl2fundamentals.org/
 
 var vertexShaderSource = `#version 300 es
 
@@ -140,33 +142,33 @@ function resize(canvas) {
 function main() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
-    var canvas = document.getElementById("glCanvas");
-    var gl = canvas.getContext("webgl2");
+    canvas = document.getElementById("glCanvas");
+    gl = canvas.getContext("webgl2");
     if (!gl) {
         return;
     }
 
-    var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    let vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    let fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
     // Use our boilerplate utils to compile the shaders and link into a program
-    var program = createProgram(gl,
+    let program = createProgram(gl,
         vertexShader, fragmentShader);
 
     // look up where the vertex data needs to go.
-    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-    var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+    let positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    let colorAttributeLocation = gl.getAttribLocation(program, "a_color");
 
     // look up uniform locations
-    var colorLocation = gl.getUniformLocation(program, "u_color");
-    var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+    let colorLocation = gl.getUniformLocation(program, "u_color");
+    let matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
     // Create a buffer
-    var positionBuffer = gl.createBuffer();
-    var colorBuffer = gl.createBuffer();
+    let positionBuffer = gl.createBuffer();
+    let colorBuffer = gl.createBuffer();
 
     // Create a vertex array object (attribute state)
-    var vao = gl.createVertexArray();
+    let vao = gl.createVertexArray();
 
     // and make it the one we're currently working with
     gl.bindVertexArray(vao);
@@ -180,11 +182,11 @@ function main() {
     setGeometry(gl);
 
     // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-    var size = 3;          // 3 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
+    let size = 3;          // 3 components per iteration
+    let type = gl.FLOAT;   // the data is 32bit floats
+    let normalize = false; // don't normalize the data
+    let stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    let offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(
         positionAttributeLocation, size, type, normalize, stride, offset);
 
@@ -201,33 +203,33 @@ function main() {
     setColors(gl);
     gl.enableVertexAttribArray(colorAttributeLocation);
 
-    var size = 3;
-    var type = gl.UNSIGNED_BYTE;
-    var normalize = true;
-    var stride = 0;
-    var offset = 0;
+    size = 3;
+    type = gl.UNSIGNED_BYTE;
+    normalize = true;
+    stride = 0;
+    offset = 0;
     gl.vertexAttribPointer(colorAttributeLocation, size, type, normalize, stride, offset);
 
 
     // First let's make some variables
     // to hold the translation,
-    var translation = [-100, -100, -300];
-    var rotation = [degToRad(0), degToRad(0), degToRad(0)];
-    var scale = [0.25, 0.25, 0.25];
-    var color = [Math.random(), Math.random(), Math.random(), 1];
-    var rotationSpeed = degToRad(18);
-    var translationSpeed = 5;
+    let translation = [-100, -100, -300];
+    let rotation = [degToRad(0), degToRad(0), degToRad(0)];
+    let scale = [0.25, 0.25, 0.25];
+    let color = [Math.random(), Math.random(), Math.random(), 1];
+    let rotationSpeed = degToRad(18);
+    let translationSpeed = 5;
 
     //Code for the frame rate independent animation
-    var then = 0;
-    requestAnimationFrame(drawScene);
+    let then = 0;
+    reqNum = requestAnimationFrame(drawScene);
 
     function drawScene(now) {
         //Calculation for framerate independent animation
         //Convert the time to seconds
         now *= 0.001;
         //Subtract the previous time from current time
-        var deltatime = now - then;
+        let deltatime = now - then;
         //Remember the current time for the next frame
         then = now;
         // translation[0] += translationSpeed * deltatime;
@@ -271,11 +273,11 @@ function main() {
         // var far = -400;
         // var matrix = m4.orthographic(left,right,bottom,top,near,far);
 
-        var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-        var zNear = 1;
-        var zFar = 2000;
+        let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+        let zNear = 1;
+        let zFar = 2000;
         let fieldOfViewRadians = degToRad(50);
-        var perspectiveMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
+        let perspectiveMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
         //This was the code that was used for the original 'F'. Check next code block for camera stuff
         // matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
@@ -294,23 +296,23 @@ function main() {
         // gl.drawArrays(primitiveType, offset, count);
 
         //Compute the position of the first F
-        var fPosition = [0, 0, -500];
+        let fPosition = [0, 0, -500];
         //This are the changes made for the camera
         //Use the matrix math to compute a position on the circle
-        var cameraMatrix = m4.yRotation(degToRad(0));
+        let cameraMatrix = m4.yRotation(degToRad(0));
         cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);//radius * 1.5);
-        var cameraPosition = [
+        let cameraPosition = [
             cameraMatrix[12],
             cameraMatrix[13],
             cameraMatrix[14],
         ];
-        var up = [0, 1, 0];
+        let up = [0, 1, 0];
         //Compute the camera's matrix using look at.
         cameraMatrix = m4.lookAt(cameraPosition, fPosition, up);
         //Make a view matrix from the camera matrix
-        var viewMatrix = m4.inverse(cameraMatrix);
+        let viewMatrix = m4.inverse(cameraMatrix);
         //move the projection space to view space(the space in front of the camera)
-        var viewProjectionMatrix = m4.multiply(perspectiveMatrix, viewMatrix);
+        let viewProjectionMatrix = m4.multiply(perspectiveMatrix, viewMatrix);
         //Draw 'F's in a circle
         // add in the translation for this F
         viewProjectionMatrix = m4.translate(viewProjectionMatrix, translation[0], translation[1], translation[2]);
@@ -321,12 +323,13 @@ function main() {
         // Set the matrix.
         gl.uniformMatrix4fv(matrixLocation, false, viewProjectionMatrix);
         // Draw the geometry.
-        var primitiveType = gl.TRIANGLES;
-        var offset = 0;
-        var count = 16 * 6;
+        let primitiveType = gl.TRIANGLES;
+        let offset = 0;
+        let count = 16 * 6;
         gl.drawArrays(primitiveType, offset, count);
         //Drawing animation
-        requestAnimationFrame(drawScene);
+        reqNum = requestAnimationFrame(drawScene);
+
     }
 }
 
@@ -726,4 +729,8 @@ function updateScale(index) {
     };
 }
 
+var canvas;
+var gl;
+var reqNum = 0;
 main();
+
