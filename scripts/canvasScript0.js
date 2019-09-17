@@ -325,7 +325,7 @@ function main() {
         // Draw the geometry.
         let primitiveType = gl.TRIANGLES;
         let offset = 0;
-        let count = 16 * 6;
+        let count = 6 * 6;
         gl.drawArrays(primitiveType, offset, count);
         //Drawing animation
         reqNum = requestAnimationFrame(drawScene);
