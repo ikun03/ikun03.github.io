@@ -5,6 +5,27 @@ function degToRad(number) {
 
 var keyFrame = 0;
 
+function toRotnMatrix(quat1) {
+    return mat4.fromValues(
+        1 - (2 * quat1._y * quat1._y) - (2 * quat1._z * quat1._z),
+        (2 * quat1._x * quat1._y) - (2 * quat1._w * quat1._z),
+        (2 * quat1._x * quat1._z) + (2 * quat1._w * quat1._y),
+        0,
+
+        (2 * quat1._x * quat1._y) + (2 * quat1._w * quat1._z),
+        1 - (2 * quat1._x * quat1._x) - (2 * quat1._z * quat1._z),
+        (2 * quat1._y * quat1._z) - (2 * quat1._w * quat1._x),
+        0,
+
+        (2 * quat1._x * quat1._z) - (2 * quat1._w * quat1._y),
+        (2 * quat1._y * quat1._z) + (2 * quat1._w * quat1._x),
+        1 - (2 * quat1._x * quat1._x) - (2 * quat1._y * quat1._y),
+        0,
+
+        0, 0, 0, 1
+    )
+}
+
 // start here
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
     //We have passed time from this we calculate u
@@ -35,6 +56,8 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
         p_2.unitQuaternion[2],
         p_2.unitQuaternion[3]
     );
+    quat1.slerp(quat2, u);
+    let rotMat = toRotnMatrix(quat1);
 
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);//Clear to black
@@ -66,7 +89,7 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -30.0]);
     /*mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);*/
     //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
-
+    mat4.multiply(modelViewMatrix, modelViewMatrix, rotMat);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     {
@@ -187,7 +210,7 @@ function main() {
     //Let us calculate the quaternion for each rotation
     //Then we convert it to a Unit quaternion and store it
     //for conversion
-    for (let j = 0; j < keyframesArray.length; j++) {
+    for (let j = 0; j < keyframesArray.length - 1; j++) {
         let keyframeValue = keyframesArray[j];
         let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
         let radY = degToRad(keyframeValue.ya * keyframeValue.theta);
