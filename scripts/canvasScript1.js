@@ -9,17 +9,33 @@ var keyFrame = 0;
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
     //We have passed time from this we calculate u
     let u = (passedTime - keyFrame).toPrecision(2);
+    if (u > 1) {
+        keyFrame += 1;
+        u = (passedTime - keyFrame).toPrecision(2);
+    }
     let p_1 = keyframesArray[keyFrame];
     let p_2 = keyframesArray[keyFrame + 1];
 
+    //This code is for Lerping
     let P_at_u_x = (p_2.x - p_1.x) * u + p_1.x;
     P_at_u_x = ((10 * P_at_u_x) / 50);
     let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
     P_at_u_y = ((10 * P_at_u_y) / 50);
     let P_at_u_z = ((p_2.z - 40) - (p_1.z - 40)) * u + (p_1.z - 40);
-    if (u > 1) {
-        keyFrame += 1;
-    }
+
+    let quat1 = new THREE.Quaternion(
+        p_1.unitQuaternion[0],
+        p_1.unitQuaternion[1],
+        p_1.unitQuaternion[2],
+        p_1.unitQuaternion[3]);
+
+    let quat2 = new THREE.Quaternion(
+        p_2.unitQuaternion[0],
+        p_2.unitQuaternion[1],
+        p_2.unitQuaternion[2],
+        p_2.unitQuaternion[3]
+    );
+
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);//Clear to black
     gl.clearDepth(1.0); //Clear Everything
@@ -168,7 +184,6 @@ function main() {
             theta: parseFloat(values[7]),
         })
     }
-
     //Let us calculate the quaternion for each rotation
     //Then we convert it to a Unit quaternion and store it
     //for conversion
@@ -199,12 +214,12 @@ function main() {
 
         let delta = Math.sqrt(wSq + xSq + ySq + zSq);
 
-        keyframesArray[j].unitQuaternion = {
-            w: (quaternion.w / delta).toPrecision(3),
-            x: (quaternion.x / delta).toPrecision(3),
-            y: (quaternion.y / delta).toPrecision(3),
-            z: (quaternion.z / delta).toPrecision(3),
-        };
+        keyframesArray[j].unitQuaternion = [
+            parseFloat((quaternion.x / delta).toPrecision(3)),
+            parseFloat((quaternion.y / delta).toPrecision(3)),
+            parseFloat((quaternion.z / delta).toPrecision(3)),
+            parseFloat((quaternion.w / delta).toPrecision(3)),
+        ];
     }
 
     const buffers = initBuffers(gl);

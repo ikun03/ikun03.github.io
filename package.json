@@ -1,0 +1,8 @@
+{
+  "name": "ikun03.github.io",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "three": "^0.109.0"
+  }
+}
