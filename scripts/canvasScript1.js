@@ -16,7 +16,7 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     P_at_u_x = ((10 * P_at_u_x) / 50);
     let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
     P_at_u_y = ((10 * P_at_u_y) / 50);
-    let P_at_u_z = ((p_2.z - 50) - (p_1.z - 50)) * u + (p_1.z - 50);
+    let P_at_u_z = ((p_2.z - 40) - (p_1.z - 40)) * u + (p_1.z - 40);
     if (u > 1) {
         keyFrame += 1;
     }
