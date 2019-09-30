@@ -3,11 +3,23 @@ function degToRad(number) {
     return (number * Math.PI / 180).toPrecision(3);
 }
 
-// start here
-function drawScene(gl, programInfo, buffers, deltaTime) {
-    //Lets create a variable in which to track the current
-    //rotation of the square.
+var keyFrame = 0;
 
+// start here
+function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
+    //We have passed time from this we calculate u
+    let u = (passedTime - keyFrame).toPrecision(2);
+    let p_1 = keyframesArray[keyFrame];
+    let p_2 = keyframesArray[keyFrame + 1];
+
+    let P_at_u_x = (p_2.x - p_1.x) * u + p_1.x;
+    P_at_u_x = ((10 * P_at_u_x) / 50);
+    let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
+    P_at_u_y = ((10 * P_at_u_y) / 50);
+    let P_at_u_z = ((p_2.z - 50) - (p_1.z - 50)) * u + (p_1.z - 50);
+    if (u > 1) {
+        keyFrame += 1;
+    }
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);//Clear to black
     gl.clearDepth(1.0); //Clear Everything
@@ -34,9 +46,10 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
 
     const modelViewMatrix = mat4.create();
 
-    mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -10.0]);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [P_at_u_x, P_at_u_y, P_at_u_z]);
+    //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -30.0]);
     /*mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);*/
-    mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
+    //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -146,13 +159,13 @@ function main() {
         let values = keyframeLines[i].replace("  ", " ").split(" ");
         keyframesArray.push({
             t: values[0],
-            x: values[1],
-            y: values[2],
-            z: values[3],
-            xa: values[4],
-            ya: values[5],
-            za: values[6],
-            theta: values[7],
+            x: parseFloat(values[1]),
+            y: parseFloat(values[2]),
+            z: parseFloat(values[3]),
+            xa: parseFloat(values[4]),
+            ya: parseFloat(values[5]),
+            za: parseFloat(values[6]),
+            theta: parseFloat(values[7]),
         })
     }
 
@@ -197,14 +210,14 @@ function main() {
     const buffers = initBuffers(gl);
     //We use this for animation
     let then = 0;
-    let passedTime = 0;
+    let startTime = new Date().getTime();
 
     function render(now) {
         now *= 0.001; //convert to seconds
         const deltaTime = now - then;
+        let passedTime = ((new Date().getTime()) - startTime) * 0.001;
         then = now;
-
-        drawScene(gl, progInfo, buffers, deltaTime);
+        drawScene(gl, progInfo, buffers, deltaTime, passedTime, keyframesArray);
         requestAnimationFrame(render);
     }
 
