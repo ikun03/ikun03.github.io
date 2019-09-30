@@ -1,8 +1,6 @@
-var cubeRotation = 0.0;
-
 //
 function degToRad(number) {
-    return number * Math.PI / 180;
+    return (number * Math.PI / 180).toPrecision(3);
 }
 
 // start here
@@ -37,13 +35,8 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     const modelViewMatrix = mat4.create();
 
     mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -10.0]);
-    mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);
-    mat4.rotate(modelViewMatrix,
-        modelViewMatrix,
-        cubeRotation,
-        [0, 0, 1]);
-
-    mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * .7, [0, 1, 0]);
+    /*mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);*/
+    mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -87,12 +80,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    {
-        const vertexCount = 36;
-        const type = gl.UNSIGNED_SHORT;
-        const offset = 0;
-        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset)
-    }
+
 
     // Tell WebGL to use our program when drawing
 
@@ -110,11 +98,12 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         modelViewMatrix);
 
     {
+        const vertexCount = 36;
+        const type = gl.UNSIGNED_SHORT;
         const offset = 0;
-        const vertexCount = 4;
-        gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
-    cubeRotation += deltaTime;
+
 
 }
 
@@ -149,9 +138,66 @@ function main() {
         },
     };
 
+    //Assignment part
+    //Let us take the keyframe string and work with it
+    var keyframeLines = keyframes.replace("\n", "").split(";");
+    var keyframesArray = [];
+    for (let i = 0; i < keyframeLines.length; i++) {
+        let values = keyframeLines[i].replace("  ", " ").split(" ");
+        keyframesArray.push({
+            t: values[0],
+            x: values[1],
+            y: values[2],
+            z: values[3],
+            xa: values[4],
+            ya: values[5],
+            za: values[6],
+            theta: values[7],
+        })
+    }
+
+    //Let us calculate the quaternion for each rotation
+    //Then we convert it to a Unit quaternion and store it
+    //for conversion
+    for (let j = 0; j < keyframesArray.length; j++) {
+        let keyframeValue = keyframesArray[j];
+        let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
+        let radY = degToRad(keyframeValue.ya * keyframeValue.theta);
+        let radZ = degToRad(keyframeValue.za * keyframeValue.theta);
+
+        let cy = Math.cos(radZ * 0.5).toPrecision(3);
+        let sy = Math.sin(radZ * 0.5).toPrecision(3);
+        let cp = Math.cos(radY * 0.5).toPrecision(3);
+        let sp = Math.cos(radY * 0.5).toPrecision(3);
+        let cr = Math.cos(radX * 0.5).toPrecision(3);
+        let sr = Math.cos(radX * 0.5).toPrecision(3);
+
+        let quaternion = {
+            w: cy * cp * cr + sy * sp * sr,
+            x: cy * cp * sr - sy * sp * cr,
+            y: sy * cp * sr + cy * sp * cr,
+            z: sy * cp * cr - cy * sp * sr,
+        };
+
+        let wSq = quaternion.w * quaternion.w;
+        let xSq = quaternion.x * quaternion.x;
+        let ySq = quaternion.y * quaternion.y;
+        let zSq = quaternion.z * quaternion.z;
+
+        let delta = Math.sqrt(wSq + xSq + ySq + zSq);
+
+        keyframesArray[j].unitQuaternion = {
+            w: (quaternion.w / delta).toPrecision(3),
+            x: (quaternion.x / delta).toPrecision(3),
+            y: (quaternion.y / delta).toPrecision(3),
+            z: (quaternion.z / delta).toPrecision(3),
+        };
+    }
+
     const buffers = initBuffers(gl);
     //We use this for animation
-    var then = 0;
+    let then = 0;
+    let passedTime = 0;
 
     function render(now) {
         now *= 0.001; //convert to seconds
@@ -192,6 +238,18 @@ const fsSource = `
       gl_FragColor = vColor;
     }
   `;
+
+const keyframes = `
+0.0  0.0 0.0 0.0 1.0 1.0 -1.0 0.0;
+1.0  4.0 0.0 0.0 1.0 1.0 -1.0 30.0;
+2.0  8.0 0.0 0.0 1.0 1.0 -1.0 90.0;
+3.0  12.0 12.0 12.0 1.0 1.0 -1.0 180.0;
+4.0  12.0 18.0 18.0 1.0 1.0 -1.0 270.0;
+5.0  18.0 18.0 18.0 0.0 1.0 0.0 90.0;
+6.0  18.0 18.0 18.0 0.0 0.0 1.0 90.0;
+7.0  25.0 12.0 12.0 1.0 0.0 0.0 0.0;
+8.0  25.0 0.0 18.0 1.0 0.0 0.0 0.0;
+9.0 25.0 1.0 18.0 1.0 0.0 0.0 0.0;`;
 
 //
 // Initialize a shader program, so WebGL knows how to draw our data
@@ -298,8 +356,8 @@ function initBuffers(gl) {
         [1.0, 1.0, 0.0, 1.0],    // Right face: yellow
         [1.0, 0.0, 1.0, 1.0],    // Left face: purple
     ];
-    var colors = [];
-    for (var j = 0; j < faceColors.length; j++) {
+    let colors = [];
+    for (let j = 0; j < faceColors.length; j++) {
         const c = faceColors[j];
         colors = colors.concat(c, c, c, c);
     }
