@@ -44,18 +44,9 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     P_at_u_y = ((10 * P_at_u_y) / 50);
     let P_at_u_z = ((p_2.z - 40) - (p_1.z - 40)) * u + (p_1.z - 40);
 
-    let quat1 = new THREE.Quaternion(
-        p_1.unitQuaternion[0],
-        p_1.unitQuaternion[1],
-        p_1.unitQuaternion[2],
-        p_1.unitQuaternion[3]);
+    let quat1 = p_1.unitQuaternion.normalize();
+    let quat2 = p_2.unitQuaternion.normalize();
 
-    let quat2 = new THREE.Quaternion(
-        p_2.unitQuaternion[0],
-        p_2.unitQuaternion[1],
-        p_2.unitQuaternion[2],
-        p_2.unitQuaternion[3]
-    );
     quat1.slerp(quat2, u);
     let rotMat = toRotnMatrix(quat1);
 
@@ -212,16 +203,16 @@ function main() {
     //for conversion
     for (let j = 0; j < keyframesArray.length - 1; j++) {
         let keyframeValue = keyframesArray[j];
-        let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
+        /*let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
         let radY = degToRad(keyframeValue.ya * keyframeValue.theta);
         let radZ = degToRad(keyframeValue.za * keyframeValue.theta);
 
         let cy = Math.cos(radZ * 0.5).toPrecision(3);
         let sy = Math.sin(radZ * 0.5).toPrecision(3);
         let cp = Math.cos(radY * 0.5).toPrecision(3);
-        let sp = Math.cos(radY * 0.5).toPrecision(3);
+        let sp = Math.sin(radY * 0.5).toPrecision(3);
         let cr = Math.cos(radX * 0.5).toPrecision(3);
-        let sr = Math.cos(radX * 0.5).toPrecision(3);
+        let sr = Math.sin(radX * 0.5).toPrecision(3);
 
         let quaternion = {
             w: cy * cp * cr + sy * sp * sr,
@@ -242,7 +233,14 @@ function main() {
             parseFloat((quaternion.y / delta).toPrecision(3)),
             parseFloat((quaternion.z / delta).toPrecision(3)),
             parseFloat((quaternion.w / delta).toPrecision(3)),
-        ];
+        ];*/
+        let quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(
+            new THREE.Vector3(keyframeValue.xa, keyframeValue.ya, keyframeValue.za),
+            keyframeValue.theta);
+        keyframesArray[j].unitQuaternion = quaternion;
+
+
     }
 
     const buffers = initBuffers(gl);
