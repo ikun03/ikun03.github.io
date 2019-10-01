@@ -1,9 +1,9 @@
 //
 function degToRad(number) {
-    return (number * Math.PI / 180).toPrecision(3);
+    return number * Math.PI / 180;
 }
 
-var keyFrame = 0;
+let keyFrame = 0.0;
 
 function toRotnMatrix(quat1) {
     return mat4.fromValues(
@@ -29,10 +29,10 @@ function toRotnMatrix(quat1) {
 // start here
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
     //We have passed time from this we calculate u
-    let u = (passedTime - keyFrame).toPrecision(2);
+    let u = parseFloat(passedTime - keyFrame).toPrecision(4);
     if (u > 1) {
         keyFrame += 1;
-        u = (passedTime - keyFrame).toPrecision(2);
+        u = parseFloat(passedTime - keyFrame).toPrecision(4);
     }
     let p_1 = keyframesArray[keyFrame];
     let p_2 = keyframesArray[keyFrame + 1];
@@ -44,10 +44,10 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     P_at_u_y = ((10 * P_at_u_y) / 50);
     let P_at_u_z = ((p_2.z - 40) - (p_1.z - 40)) * u + (p_1.z - 40);
 
-    let quat1 = p_1.unitQuaternion.normalize();
-    let quat2 = p_2.unitQuaternion.normalize();
-
+    let quat1 = p_1.quaternion.normalize();
+    let quat2 = p_2.quaternion.normalize();
     quat1.slerp(quat2, u);
+    console.log(passedTime);
     let rotMat = toRotnMatrix(quat1);
 
 
@@ -196,13 +196,14 @@ function main() {
             ya: parseFloat(values[5]),
             za: parseFloat(values[6]),
             theta: parseFloat(values[7]),
-        })
+        });
     }
     //Let us calculate the quaternion for each rotation
     //Then we convert it to a Unit quaternion and store it
     //for conversion
     for (let j = 0; j < keyframesArray.length - 1; j++) {
         let keyframeValue = keyframesArray[j];
+        //Old incorrect code to create quaternions from Euler Angles
         /*let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
         let radY = degToRad(keyframeValue.ya * keyframeValue.theta);
         let radZ = degToRad(keyframeValue.za * keyframeValue.theta);
@@ -234,11 +235,14 @@ function main() {
             parseFloat((quaternion.z / delta).toPrecision(3)),
             parseFloat((quaternion.w / delta).toPrecision(3)),
         ];*/
+        //New implementation
         let quaternion = new THREE.Quaternion();
+        let axis = new THREE.Vector3(keyframeValue.xa, keyframeValue.ya, keyframeValue.za).normalize();
+        let angle = degToRad(keyframeValue.theta);
         quaternion.setFromAxisAngle(
-            new THREE.Vector3(keyframeValue.xa, keyframeValue.ya, keyframeValue.za),
-            keyframeValue.theta);
-        keyframesArray[j].unitQuaternion = quaternion;
+            axis,
+            angle);
+        keyframesArray[j].quaternion = quaternion;
 
 
     }
@@ -246,12 +250,13 @@ function main() {
     const buffers = initBuffers(gl);
     //We use this for animation
     let then = 0;
-    let startTime = new Date().getTime();
+    //let startTime = new Date().getTime() * 0.001;
+    let passedTime = 0;
 
     function render(now) {
         now *= 0.001; //convert to seconds
         const deltaTime = now - then;
-        let passedTime = ((new Date().getTime()) - startTime) * 0.001;
+        passedTime += deltaTime;
         then = now;
         drawScene(gl, progInfo, buffers, deltaTime, passedTime, keyframesArray);
         requestAnimationFrame(render);
