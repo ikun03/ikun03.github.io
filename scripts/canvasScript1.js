@@ -3,7 +3,7 @@ function degToRad(number) {
     return number * Math.PI / 180;
 }
 
-let keyFrame = 0.0;
+let keyFrame = 0;
 
 function toRotnMatrix(quat1) {
     return mat4.fromValues(
@@ -26,27 +26,48 @@ function toRotnMatrix(quat1) {
     )
 }
 
+function lerp(p_2, p_1, u) {
+    let P_at_u_x = (p_2.x - p_1.x) * u + p_1.x;
+    let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
+    let P_at_u_z = ((p_2.z) - (p_1.z)) * u + (p_1.z);
+    //return {P_at_u_x, P_at_u_y, P_at_u_z};
+    return {x: P_at_u_x, y: P_at_u_y, z: P_at_u_z};
+}
+
 // start here
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
     //We have passed time from this we calculate u
     let u = parseFloat(passedTime - keyFrame).toPrecision(4);
-    if (u > 1) {
-        keyFrame += 1;
+    if (u > 3) {
+        keyFrame += 3;
         u = parseFloat(passedTime - keyFrame).toPrecision(4);
     }
-    let p_1 = keyframesArray[keyFrame];
-    let p_2 = keyframesArray[keyFrame + 1];
+    u = u / 3;
+    //An attempt at de Casteljau Construction
+    let p_0 = keyframesArray[keyFrame];
+    let p_1 = keyframesArray[keyFrame + 1];
+    let p_2 = keyframesArray[keyFrame + 2];
+    let p_3 = keyframesArray[keyFrame + 3];
+    let q_0 = lerp(p_1, p_0, u);
+    let q_1 = lerp(p_2, p_1, u);
+    let q_2 = lerp(p_3, p_2, u);
+    let r_0 = lerp(q_1, q_0, u);
+    let r_1 = lerp(q_2, q_1, u);
+    let lerp1 = lerp(r_1, r_0, u);
+    let P_at_u_x = lerp1.x;
+    let P_at_u_y = lerp1.y;
+    let P_at_u_z = lerp1.z;
+    P_at_u_y = ((10 * P_at_u_y) / 50);
+    P_at_u_x = ((10 * P_at_u_x) / 50);
+    console.log(P_at_u_x);
+    console.log(P_at_u_y);
+    console.log(P_at_u_z);
 
     //This code is for Lerping
-    let P_at_u_x = (p_2.x - p_1.x) * u + p_1.x;
-    P_at_u_x = ((10 * P_at_u_x) / 50);
-    let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
-    P_at_u_y = ((10 * P_at_u_y) / 50);
-    let P_at_u_z = ((p_2.z - 40) - (p_1.z - 40)) * u + (p_1.z - 40);
-
-    let quat1 = p_1.quaternion.normalize();
-    let quat2 = p_2.quaternion.normalize();
-    quat1.slerp(quat2, u);
+    //let {P_at_u_x, P_at_u_y, P_at_u_z} = lerp(p_2, p_1, u);
+    let quat1 = p_0.quaternion.normalize();
+    let quat2 = p_3.quaternion.normalize();
+    quat1.slerp(quat2, deltaTime);
     console.log(passedTime);
     let rotMat = toRotnMatrix(quat1);
 
@@ -80,6 +101,7 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -30.0]);
     /*mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);*/
     //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
+
     mat4.multiply(modelViewMatrix, modelViewMatrix, rotMat);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -191,7 +213,7 @@ function main() {
             t: values[0],
             x: parseFloat(values[1]),
             y: parseFloat(values[2]),
-            z: parseFloat(values[3]),
+            z: (parseFloat(values[3]) - 40),
             xa: parseFloat(values[4]),
             ya: parseFloat(values[5]),
             za: parseFloat(values[6]),
