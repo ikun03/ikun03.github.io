@@ -65,6 +65,8 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
 
     //This code is for Lerping
     //let {P_at_u_x, P_at_u_y, P_at_u_z} = lerp(p_2, p_1, u);
+
+    //This is normal Slerping code
     let quat1 = p_0.quaternion.normalize();
     let quat2 = p_3.quaternion.normalize();
     quat1.slerp(quat2, deltaTime);
