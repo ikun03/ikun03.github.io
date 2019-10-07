@@ -1,86 +1,19 @@
-//
+//8
+
 function degToRad(number) {
     return number * Math.PI / 180;
 }
 
-let keyFrame = 0;
-
-function toRotnMatrix(quat1) {
-    return mat4.fromValues(
-        1 - (2 * quat1._y * quat1._y) - (2 * quat1._z * quat1._z),
-        (2 * quat1._x * quat1._y) - (2 * quat1._w * quat1._z),
-        (2 * quat1._x * quat1._z) + (2 * quat1._w * quat1._y),
-        0,
-
-        (2 * quat1._x * quat1._y) + (2 * quat1._w * quat1._z),
-        1 - (2 * quat1._x * quat1._x) - (2 * quat1._z * quat1._z),
-        (2 * quat1._y * quat1._z) - (2 * quat1._w * quat1._x),
-        0,
-
-        (2 * quat1._x * quat1._z) - (2 * quat1._w * quat1._y),
-        (2 * quat1._y * quat1._z) + (2 * quat1._w * quat1._x),
-        1 - (2 * quat1._x * quat1._x) - (2 * quat1._y * quat1._y),
-        0,
-
-        0, 0, 0, 1
-    )
-}
-
-function lerp(p_2, p_1, u) {
-    let P_at_u_x = (p_2.x - p_1.x) * u + p_1.x;
-    let P_at_u_y = (p_2.y - p_1.y) * u + p_1.y;
-    let P_at_u_z = ((p_2.z) - (p_1.z)) * u + (p_1.z);
-    //return {P_at_u_x, P_at_u_y, P_at_u_z};
-    return {x: P_at_u_x, y: P_at_u_y, z: P_at_u_z};
-}
-
-// start here
+/**
+ * The function to draw the scene
+ * @param gl
+ * @param programInfo
+ * @param buffers
+ * @param deltaTime
+ * @param passedTime
+ * @param keyframesArray
+ */
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
-    //We have passed time from this we calculate u
-    let u = parseFloat(passedTime - keyFrame).toPrecision(4);
-    if (u > 1) {
-        keyFrame += 1;
-        u = parseFloat(passedTime - keyFrame).toPrecision(4);
-    }
-
-    //An attempt at de Casteljau Construction
-    //u = u / 3;
-    // let p_0 = keyframesArray[keyFrame];
-    // let p_1 = keyframesArray[keyFrame + 1];
-    // let p_2 = keyframesArray[keyFrame + 2];
-    // let p_3 = keyframesArray[keyFrame + 3];
-    // let q_0 = lerp(p_1, p_0, u);
-    // let q_1 = lerp(p_2, p_1, u);
-    // let q_2 = lerp(p_3, p_2, u);
-    // let r_0 = lerp(q_1, q_0, u);
-    // let r_1 = lerp(q_2, q_1, u);
-    // let lerp1 = lerp(r_1, r_0, u);
-    // let P_at_u_x = lerp1.x;
-    // let P_at_u_y = lerp1.y;
-    // let P_at_u_z = lerp1.z;
-    // P_at_u_y = ((10 * P_at_u_y) / 50);
-    // P_at_u_x = ((10 * P_at_u_x) / 50);
-    // console.log(P_at_u_x);
-    // console.log(P_at_u_y);
-    // console.log(P_at_u_z);
-
-    //This code is for Lerping
-    let p_1 = keyframesArray[keyFrame];
-    let p_2 = keyframesArray[keyFrame + 1];
-    let lerp1 = lerp(p_2, p_1, u);
-    let P_at_u_x = lerp1.x;
-    let P_at_u_y = lerp1.y;
-    let P_at_u_z = lerp1.z;
-    P_at_u_y = ((10 * P_at_u_y) / 50);
-    P_at_u_x = ((10 * P_at_u_x) / 50);
-
-    //This is normal Slerping code
-    let quat1 = p_1.quaternion.normalize();
-    let quat2 = p_2.quaternion.normalize();
-    quat1.slerp(quat2, u);
-    let rotMat = toRotnMatrix(quat1);
-
-
     gl.clearColor(0.0, 0.0, 0.0, 1.0);//Clear to black
     gl.clearDepth(1.0); //Clear Everything
     gl.enable(gl.DEPTH_TEST); //Enable Depth Testing
@@ -105,13 +38,9 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     mat4.perspective(projectionMatrix, fov, aspect, zNear, zFar);
 
     const modelViewMatrix = mat4.create();
-
-    mat4.translate(modelViewMatrix, modelViewMatrix, [P_at_u_x, P_at_u_y, P_at_u_z]);
-    //mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -30.0]);
-    /*mat4.scale(modelViewMatrix, modelViewMatrix, [0.25, 0.25, 0.25]);*/
-    //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(45), [0.0, 1.0, 0.0]);
-
-    mat4.multiply(modelViewMatrix, modelViewMatrix, rotMat);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -50]);
+    mat4.scale(modelViewMatrix, modelViewMatrix, [10, 10, 10]);
+    //mat4.rotate(modelViewMatrix,modelViewMatrix,degToRad(45),[0,1,0]);
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     {
@@ -170,6 +99,7 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
         programInfo.uniformLocations.modelViewMatrix,
         false,
         modelViewMatrix);
+    gl.uniform4f(programInfo.uniformLocations.canvasResolutionVec, gl.canvas.width, gl.canvas.height, 100, 1);
 
     {
         const vertexCount = 36;
@@ -181,7 +111,9 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
 
 }
 
-//
+/**
+ * The main function
+ */
 function main() {
     const canvas = document.querySelector("#glCanvas");
     // Initialize the GL context
@@ -199,7 +131,6 @@ function main() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     const shaderProg = initShaderProgram(gl, vsSource, fsSource);
-
     const progInfo = {
         program: shaderProg,
         attribLocations: {
@@ -209,6 +140,7 @@ function main() {
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProg, "uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProg, "uModelViewMatrix"),
+            canvasResolutionVec: gl.getUniformLocation(shaderProg, "canvasResolution"),
         },
     };
 
@@ -234,39 +166,6 @@ function main() {
     //for conversion
     for (let j = 0; j < keyframesArray.length - 1; j++) {
         let keyframeValue = keyframesArray[j];
-        //Old incorrect code to create quaternions from Euler Angles
-        /*let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
-        let radY = degToRad(keyframeValue.ya * keyframeValue.theta);
-        let radZ = degToRad(keyframeValue.za * keyframeValue.theta);
-
-        let cy = Math.cos(radZ * 0.5).toPrecision(3);
-        let sy = Math.sin(radZ * 0.5).toPrecision(3);
-        let cp = Math.cos(radY * 0.5).toPrecision(3);
-        let sp = Math.sin(radY * 0.5).toPrecision(3);
-        let cr = Math.cos(radX * 0.5).toPrecision(3);
-        let sr = Math.sin(radX * 0.5).toPrecision(3);
-
-        let quaternion = {
-            w: cy * cp * cr + sy * sp * sr,
-            x: cy * cp * sr - sy * sp * cr,
-            y: sy * cp * sr + cy * sp * cr,
-            z: sy * cp * cr - cy * sp * sr,
-        };
-
-        let wSq = quaternion.w * quaternion.w;
-        let xSq = quaternion.x * quaternion.x;
-        let ySq = quaternion.y * quaternion.y;
-        let zSq = quaternion.z * quaternion.z;
-
-        let delta = Math.sqrt(wSq + xSq + ySq + zSq);
-
-        keyframesArray[j].unitQuaternion = [
-            parseFloat((quaternion.x / delta).toPrecision(3)),
-            parseFloat((quaternion.y / delta).toPrecision(3)),
-            parseFloat((quaternion.z / delta).toPrecision(3)),
-            parseFloat((quaternion.w / delta).toPrecision(3)),
-        ];*/
-        //New implementation
         let quaternion = new THREE.Quaternion();
         let axis = new THREE.Vector3(keyframeValue.xa, keyframeValue.ya, keyframeValue.za).normalize();
         let angle = degToRad(keyframeValue.theta);
@@ -300,6 +199,10 @@ window.onload = main;
 
 // Vertex shader program
 
+/**
+ * The vertex shader
+ * @type {string}
+ */
 const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec4 aVertexColor;
@@ -308,13 +211,24 @@ const vsSource = `
     uniform mat4 uProjectionMatrix;
     
     varying lowp vec4 vColor;
+    
+    //Now because we want to express our coordinates in pixels instead of
+    //clip coordinates, we are going to do the conversion from pixel space
+    //to clip space in the vertex shader
+    uniform vec4 canvasResolution;
 
     void main() {
+       
+      //Finally multiply the clipSpaceCoordinates by the matrix
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
       vColor=aVertexColor;
     }
   `;
 
+/**
+ * The fragment shader
+ * @type {string}
+ */
 const fsSource = `
 
     varying lowp vec4 vColor;
@@ -324,6 +238,10 @@ const fsSource = `
     }
   `;
 
+/**
+ * The input keyframes for assignment 1
+ * @type {string}
+ */
 const keyframes = `
 0.0  0.0 0.0 0.0 1.0 1.0 -1.0 0.0;
 1.0  4.0 0.0 0.0 1.0 1.0 -1.0 30.0;
@@ -336,9 +254,13 @@ const keyframes = `
 8.0  25.0 0.0 18.0 1.0 0.0 0.0 0.0;
 9.0 25.0 1.0 18.0 1.0 0.0 0.0 0.0;`;
 
-//
-// Initialize a shader program, so WebGL knows how to draw our data
-//
+/**
+ * Initialise the shader program
+ * @param gl The context for WebGL
+ * @param vsSource The source for the vertex shader
+ * @param fsSource The source for the fragment shader
+ * @returns {null|WebGLProgram}
+ */
 function initShaderProgram(gl, vsSource, fsSource) {
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
@@ -360,10 +282,13 @@ function initShaderProgram(gl, vsSource, fsSource) {
     return shaderProgram;
 }
 
-//
-// creates a shader of the given type, uploads the source and
-// compiles it.
-//
+/**
+ * Create and load a shader of the given type from the source file
+ * @param gl The context for WebGL
+ * @param type The type of shader
+ * @param source The source file for the shader
+ * @returns {WebGLShader|null}
+ */
 function loadShader(gl, type, source) {
     const shader = gl.createShader(type);
 
@@ -386,53 +311,57 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
+/**
+ * Initialize the Buffers
+ * @param gl The context for WebGL
+ * @returns {{indices: *, color: *, position: *}}
+ */
 function initBuffers(gl) {
+    //Initialize for the position of the vertices
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     // Now create an array of positions for the square.
     // Front face
     const positions = [-1.0, -1.0, 1.0,
-            1.0, -1.0, 1.0,
-            1.0, 1.0, 1.0,
-            -1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
 
-            // Back face
-            -1.0, -1.0, -1.0,
-            -1.0, 1.0, -1.0,
-            1.0, 1.0, -1.0,
-            1.0, -1.0, -1.0,
+        // Back face
+        -1.0, -1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, -1.0, -1.0,
 
-            // Top face
-            -1.0, 1.0, -1.0,
-            -1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0,
-            1.0, 1.0, -1.0,
+        // Top face
+        -1.0, 1.0, -1.0,
+        -1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, -1.0,
 
-            // Bottom face
-            -1.0, -1.0, -1.0,
-            1.0, -1.0, -1.0,
-            1.0, -1.0, 1.0,
-            -1.0, -1.0, 1.0,
+        // Bottom face
+        -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0, 1.0,
+        -1.0, -1.0, 1.0,
 
-            // Right face
-            1.0, -1.0, -1.0,
-            1.0, 1.0, -1.0,
-            1.0, 1.0, 1.0,
-            1.0, -1.0, 1.0,
+        // Right face
+        1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
 
-            // Left face
-            -1.0, -1.0, -1.0,
-            -1.0, -1.0, 1.0,
-            -1.0, 1.0, 1.0,
-            -1.0, 1.0, -1.0,
-        ]
-    ;
+        // Left face
+        -1.0, -1.0, -1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, 1.0, -1.0,
+    ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
+    //Initialize for the color of the vertices
     const colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-
     const faceColors = [
         [1.0, 1.0, 1.0, 1.0],    //Front face white
         [1.0, 0.0, 0.0, 1.0],    //Back face: red
@@ -455,7 +384,6 @@ function initBuffers(gl) {
     //Once the vertex arrays are generated, we need to build the element array
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
     const indices = [
         0, 1, 2, 0, 2, 3,    // front
         4, 5, 6, 4, 6, 7,    // back
@@ -464,7 +392,6 @@ function initBuffers(gl) {
         16, 17, 18, 16, 18, 19,   // right
         20, 21, 22, 20, 22, 23,   // left
     ];
-
     // Now send the element array to GLs
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
         new Uint16Array(indices), gl.STATIC_DRAW);
