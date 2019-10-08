@@ -4,6 +4,10 @@ function degToRad(number) {
 }
 
 let keyFrame = 0;
+let rotationKeyFrame = 0;
+let rotTimer = 0;
+let p_1, p_2;
+let P_at_u_x, P_at_u_y, P_at_u_z;
 
 function toRotnMatrix(quat1) {
     return mat4.fromValues(
@@ -37,10 +41,11 @@ function lerp(p_2, p_1, u) {
 // start here
 function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArray) {
     //We have passed time from this we calculate u
-    let u = parseFloat(passedTime - keyFrame).toPrecision(4);
-    if (u > 1) {
+    let u = parseFloat(passedTime - keyFrame).toPrecision(2);
+    if (u >= 1) {
         keyFrame += 1;
-        u = parseFloat(passedTime - keyFrame).toPrecision(4);
+        u = parseFloat(passedTime - keyFrame).toPrecision(2);
+        console.log(passedTime)
     }
 
     //An attempt at de Casteljau Construction
@@ -65,21 +70,31 @@ function drawScene(gl, programInfo, buffers, deltaTime, passedTime, keyframesArr
     // console.log(P_at_u_z);
 
     //This code is for Lerping
-    let p_1 = keyframesArray[keyFrame];
-    let p_2 = keyframesArray[keyFrame + 1];
-    let lerp1 = lerp(p_2, p_1, u);
-    let P_at_u_x = lerp1.x;
-    let P_at_u_y = lerp1.y;
-    let P_at_u_z = lerp1.z;
-    P_at_u_y = ((10 * P_at_u_y) / 50);
-    P_at_u_x = ((10 * P_at_u_x) / 50);
+    if (keyFrame < 8) {
+        p_1 = keyframesArray[keyFrame];
+        p_2 = keyframesArray[keyFrame + 1];
+        let lerp1 = lerp(p_2, p_1, u);
+        P_at_u_x = lerp1.x;
+        P_at_u_y = lerp1.y;
+        P_at_u_z = lerp1.z;
+        P_at_u_y = ((10 * P_at_u_y) / 50);
+        P_at_u_x = ((10 * P_at_u_x) / 50);
+    }
+
 
     //This is normal Slerping code
-    let quat1 = p_1.quaternion.normalize();
-    let quat2 = p_2.quaternion.normalize();
-    quat1.slerp(quat2, u);
-    let rotMat = toRotnMatrix(quat1);
-
+    rotTimer += deltaTime;
+    if (rotTimer >= 1 && rotationKeyFrame < 8) {
+        rotationKeyFrame += 1;
+        rotTimer = deltaTime;
+    }
+    let rot_quat_1 = keyframesArray[rotationKeyFrame];
+    let rot_quat_2 = keyframesArray[rotationKeyFrame + 1];
+    let quat1 = rot_quat_1.quaternion.normalize();
+    let quat2 = rot_quat_2.quaternion.normalize();
+    let quat3=new THREE.Quaternion();
+    THREE.Quaternion.slerp(quat1, quat2, quat3, rotTimer);
+    let rotMat = toRotnMatrix(quat3.normalize());
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);//Clear to black
     gl.clearDepth(1.0); //Clear Everything
@@ -216,7 +231,7 @@ function main() {
     //Let us take the keyframe string and work with it
     var keyframeLines = keyframes.replace("\n", "").split(";");
     var keyframesArray = [];
-    for (let i = 0; i < keyframeLines.length; i++) {
+    for (let i = 0; i < 10; i++) {
         let values = keyframeLines[i].replace("  ", " ").split(" ");
         keyframesArray.push({
             t: values[0],
@@ -232,7 +247,7 @@ function main() {
     //Let us calculate the quaternion for each rotation
     //Then we convert it to a Unit quaternion and store it
     //for conversion
-    for (let j = 0; j < keyframesArray.length - 1; j++) {
+    for (let j = 0; j < 10; j++) {
         let keyframeValue = keyframesArray[j];
         //Old incorrect code to create quaternions from Euler Angles
         /*let radX = degToRad(keyframeValue.xa * keyframeValue.theta);
@@ -274,8 +289,6 @@ function main() {
             axis,
             angle);
         keyframesArray[j].quaternion = quaternion;
-
-
     }
 
     const buffers = initBuffers(gl);
