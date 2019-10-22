@@ -1,42 +1,129 @@
-let scene = new THREE.Scene();
-let renderWidth = 500;
-let renderHeight = 500;
-let camera = new THREE.PerspectiveCamera(75, renderWidth / renderHeight, 0.1, 1000);
+class Ball {
 
-let renderer = new THREE.WebGLRenderer();
-renderer.setSize(renderWidth, renderHeight);
-document.body.appendChild(renderer.domElement);
+    translation = new THREE.Vector3(0, 0, 0);
+
+    constructor(ballMesh, position, mass) {
+        this.ballMesh = ballMesh;
+        this.ballMesh.position.set(position.x, position.y, position.z);
+        this.ballMesh.quaternion.set(0, 0, 0, 0);
+        this.ballVelocity = new THREE.Vector3(0, 0, 0);
+        this.ballAcceleration = new THREE.Vector3(0, 0, 0);
+        this.ballMass = mass;
+        this.ballOmega = 0;
+        this.ballOmegaAcc = 0;
+        this.ballMomentum = new THREE.Vector3(0, 0, 0);
+    }
+
+    move(delta) {
+        this.ballMesh.position.x = this.ballMesh.position.x + (this.ballVelocity.x * delta);
+        this.ballMesh.position.y = this.ballMesh.position.y + (this.ballVelocity.y * delta);
+        this.ballMesh.position.z = this.ballMesh.position.z + (this.ballVelocity.z * delta);
+    }
+
+    rotateInQuaternion(delta) {
+        let quat = this.ballMesh.quaternion.normalize();
+        let quatVec4 = new THREE.Vector4(quat.x, quat.y, quat.z, quat.w);
+        let omega4 = new THREE.Vector4(0, this.ballOmega.x, this.ballOmega.y, this.ballOmega.z);
+        
+        result = result.multiplyScalar(0.5);
+        result = result.multiplyScalar(delta);
+        this.ballMesh.quaternion.slerp(new THREE.Quaternion(result.x, result.y, result.z, result.w), delta);
+    }
+
+    changeMomentum(force, delta) {
+        this.ballMomentum.x = this.ballMomentum.x + force.x * delta;
+        this.ballMomentum.y = this.ballMomentum.y + force.y * delta;
+        this.ballMomentum.z = this.ballMomentum.z + force.z * delta;
+    }
+
+    updateVelocityFromMomentum() {
+        this.ballVelocity.x = this.ballMomentum.x / this.ballMass;
+        this.ballVelocity.y = this.ballMomentum.y / this.ballMass;
+        this.ballVelocity.z = this.ballMomentum.z / this.ballMass;
+    }
+
+}
+
+
+function main() {
+    let scene = new THREE.Scene();
+    let renderWidth = 700;
+    let renderHeight = 700;
+    let camera = new THREE.PerspectiveCamera(75, renderWidth / renderHeight, 0.01, 1000);
+
+    let renderer = new THREE.WebGLRenderer();
+    renderer.setSize(renderWidth, renderHeight);
+    document.body.appendChild(renderer.domElement);
 
 //Geometries here
 
 //Texture loading here
 //texture credits to robinwood.com and https://www.toptal.com/designers/subtlepatterns/pool-table/
-let cueTexture = new THREE.TextureLoader().load('../images/BallCue.jpg');
-let blueBallTexture = new THREE.TextureLoader().load('../images/Ball10.jpg');
-let redBallTexture = new THREE.TextureLoader().load('../images/Ball11.jpg');
-let greenBallTexture = new THREE.TextureLoader().load('../images/Ball14.jpg');
-let billiardsTableTexture = new THREE.TextureLoader().load('../images/pool_table.png');
+    let cueTexture = new THREE.TextureLoader().load('../images/BallCue.jpg');
+    let blueBallTexture = new THREE.TextureLoader().load('../images/Ball10.jpg');
+    let redBallTexture = new THREE.TextureLoader().load('../images/Ball11.jpg');
+    let greenBallTexture = new THREE.TextureLoader().load('../images/Ball14.jpg');
+    let billiardsTableTexture = new THREE.TextureLoader().load('../images/pool_table.png');
 
-let blueBall = getSphere(blueBallTexture);
-let redBall = getSphere(redBallTexture);
-let greenBall = getSphere(greenBallTexture);
-let poolTable = getCube(billiardsTableTexture);
-let cueBall = getSphere(cueTexture);
+    let blueBall = getSphere(blueBallTexture);
+    let redBall = getSphere(redBallTexture);
+    let greenBall = getSphere(greenBallTexture);
+    let poolTable = getCube(billiardsTableTexture);
+    let cueBall = getSphere(cueTexture);
 
-camera.position.z = 5;
-blueBall.position.set(5, 10, -20);
-redBall.position.set(0, 15, -20);
-greenBall.position.set(-5, 10, -20);
-poolTable.position.set(0, 0, -21);
-cueBall.position.set(0, 0, -20);
-scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
+    camera.position.z = 5;
+    poolTable.position.set(0, 0, -21);
 
-var animate = function () {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-};
+    let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, 10, -20), 10);
+    let redBallObject = new Ball(redBall, new THREE.Vector3(0, 15, -20), 10);
+    let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, 10, -20), 10);
+    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, 0, -20), 10);
+    var ballArray = [blueBallObject, redBallObject, greenBallObject, cueBallObject];
 
-animate();
+    scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
+
+    for (let i = 0; i < ballArray.length; i++) {
+        ballArray[i].ballVelocity = new THREE.Vector3(0, 1, 0);
+        ballArray[i].ballOmega = new THREE.Vector3(0, 20, 0);
+    }
+
+    let then = 0;
+
+    function animate(now) {
+        now *= 0.001;  // make it seconds
+        const delta = now - then;
+        then = now;
+
+
+        //We will calculate the forces here
+        let Ft = new THREE.Vector3(0, 10, 0);
+        let omega_t = new THREE.Vector3(0, 0, 50);
+
+        //STEP 2
+        //Now we integrate the position of the ball
+        for (let i = 0; i < ballArray.length; i++) {
+            ballArray[i].move(delta);
+            ballArray[i].rotateInQuaternion(delta);
+        }
+
+        //Update momentum
+        for (let i = 0; i < ballArray.length; i++) {
+            ballArray[i].changeMomentum(Ft, delta);
+        }
+
+        //STEP 3
+        for (let i = 0; i < ballArray.length; i++) {
+            ballArray[i].updateVelocityFromMomentum();
+        }
+
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+
+    requestAnimationFrame(animate)
+}
+
+main();
 
 function getCube(texture) {
     var geometry = new THREE.BoxGeometry(40, 40, 0.5);
