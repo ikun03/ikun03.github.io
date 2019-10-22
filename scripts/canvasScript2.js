@@ -22,12 +22,12 @@ class Ball {
 
     rotateInQuaternion(delta) {
         let quat = this.ballMesh.quaternion.normalize();
-        let quatVec4 = new THREE.Vector4(quat.x, quat.y, quat.z, quat.w);
-        let omega4 = new THREE.Vector4(0, this.ballOmega.x, this.ballOmega.y, this.ballOmega.z);
-        
-        result = result.multiplyScalar(0.5);
-        result = result.multiplyScalar(delta);
-        this.ballMesh.quaternion.slerp(new THREE.Quaternion(result.x, result.y, result.z, result.w), delta);
+        let omegaQuaternion = new THREE.Quaternion(this.ballOmega.x, this.ballOmega.y, this.ballOmega.z, 0);
+        omegaQuaternion = omegaQuaternion.multiply(quat);
+        omegaQuaternion = new THREE.Quaternion(omegaQuaternion.x * 0.5, omegaQuaternion.y * 0.5, omegaQuaternion.z * 0.5, omegaQuaternion.w * 0.5);
+        omegaQuaternion = new THREE.Quaternion(omegaQuaternion.x * delta, omegaQuaternion.y * delta, omegaQuaternion.z * delta, omegaQuaternion.w * delta);
+        omegaQuaternion = new THREE.Quaternion(quat.x + omegaQuaternion.x, quat.y + omegaQuaternion.y, quat.z + omegaQuaternion.z, quat.w + omegaQuaternion.w);
+        this.ballMesh.quaternion.set(omegaQuaternion.x, omegaQuaternion.y, omegaQuaternion.z, omegaQuaternion.w);
     }
 
     changeMomentum(force, delta) {
@@ -84,7 +84,7 @@ function main() {
 
     for (let i = 0; i < ballArray.length; i++) {
         ballArray[i].ballVelocity = new THREE.Vector3(0, 1, 0);
-        ballArray[i].ballOmega = new THREE.Vector3(0, 20, 0);
+        ballArray[i].ballOmega = new THREE.Vector3(0, 0, 0);
     }
 
     let then = 0;
@@ -97,7 +97,6 @@ function main() {
 
         //We will calculate the forces here
         let Ft = new THREE.Vector3(0, 10, 0);
-        let omega_t = new THREE.Vector3(0, 0, 50);
 
         //STEP 2
         //Now we integrate the position of the ball
