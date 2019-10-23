@@ -10,8 +10,11 @@ class Ball {
         this.ballAcceleration = new THREE.Vector3(0, 0, 0);
         this.ballMass = mass;
         this.ballOmega = 0;
+        this.ballTorque = 0;
         this.ballOmegaAcc = 0;
         this.ballMomentum = new THREE.Vector3(0, 0, 0);
+        this.ballAngularMomentum = new THREE.Vector3(0, 0, 0);
+        this.ballRadius = this.ballMesh.geometry.parameters.radius;
     }
 
     move(delta) {
@@ -36,10 +39,29 @@ class Ball {
         this.ballMomentum.z = this.ballMomentum.z + force.z * delta;
     }
 
+    changeAngularMomentum(delta) {
+        this.ballAngularMomentum = this.ballAngularMomentum.add(this.ballTorque.multiplyScalar(delta))
+    }
+
     updateVelocityFromMomentum() {
         this.ballVelocity.x = this.ballMomentum.x / this.ballMass;
         this.ballVelocity.y = this.ballMomentum.y / this.ballMass;
         this.ballVelocity.z = this.ballMomentum.z / this.ballMass;
+    }
+
+    updateAngularVelocityFromMomentum() {
+        let inertiaTensorValue = (2 / 5) * this.ballMass * this.ballRadius * this.ballRadius;
+        let matrix = new THREE.Matrix3();
+        matrix.set(inertiaTensorValue, 0, 0,
+            0, inertiaTensorValue, 0,
+            0, 0, inertiaTensorValue);
+        matrix.getInverse(matrix, false);
+        let matrixArray = matrix.elements;
+        let ballM = this.ballAngularMomentum;
+        let element1 = ballM.x * matrixArray[0] + ballM.y * matrixArray[3] + ballM.z * matrixArray[6];
+        let element2 = ballM.x * matrixArray[1] + ballM.y * matrixArray[4] + ballM.z * matrixArray[7];
+        let element3 = ballM.x * matrixArray[2] + ballM.y * matrixArray[5] + ballM.z * matrixArray[8];
+        this.ballOmega = new THREE.Vector3(element1, element2, element3);
     }
 
 }
@@ -74,14 +96,15 @@ function main() {
     camera.position.z = 5;
     poolTable.position.set(0, 0, -21);
 
-    let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, 10, -20), 10);
-    let redBallObject = new Ball(redBall, new THREE.Vector3(0, 15, -20), 10);
-    let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, 10, -20), 10);
-    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, 0, -20), 10);
+    let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, -15, -20), 1);
+    let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
+    let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
+    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
     var ballArray = [blueBallObject, redBallObject, greenBallObject, cueBallObject];
 
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
 
+    //For now we are just giving the ball sample translational and rotational velocity
     for (let i = 0; i < ballArray.length; i++) {
         ballArray[i].ballVelocity = new THREE.Vector3(0, 1, 0);
         ballArray[i].ballOmega = new THREE.Vector3(0, 0, 0);
@@ -94,9 +117,19 @@ function main() {
         const delta = now - then;
         then = now;
 
-
+        //STEP 1
         //We will calculate the forces here
         let Ft = new THREE.Vector3(0, 10, 0);
+
+        //Calculating torque due to gravity
+        for (let i = 0; i < ballArray.length; i++) {
+            let gravFric = ballArray[i].ballVelocity.clone().normalize().negate()
+                .multiplyScalar(ballArray[i].ballMass)
+                .multiplyScalar(9.8)
+                .multiplyScalar(0.4);
+            let ballPointVector = new THREE.Vector3(0, 0, -0.5);
+            ballArray[i].ballTorque = ballPointVector.cross(gravFric);
+        }
 
         //STEP 2
         //Now we integrate the position of the ball
@@ -108,11 +141,13 @@ function main() {
         //Update momentum
         for (let i = 0; i < ballArray.length; i++) {
             ballArray[i].changeMomentum(Ft, delta);
+            ballArray[i].changeAngularMomentum(delta);
         }
 
         //STEP 3
         for (let i = 0; i < ballArray.length; i++) {
             ballArray[i].updateVelocityFromMomentum();
+            ballArray[i].updateAngularVelocityFromMomentum();
         }
 
         requestAnimationFrame(animate);
