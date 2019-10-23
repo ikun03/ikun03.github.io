@@ -15,6 +15,7 @@ class Ball {
         this.ballMomentum = new THREE.Vector3(0, 0, 0);
         this.ballAngularMomentum = new THREE.Vector3(0, 0, 0);
         this.ballRadius = this.ballMesh.geometry.parameters.radius;
+        this.ballForce = new THREE.Vector3(0, 0, 0);
     }
 
     move(delta) {
@@ -33,10 +34,10 @@ class Ball {
         this.ballMesh.quaternion.set(omegaQuaternion.x, omegaQuaternion.y, omegaQuaternion.z, omegaQuaternion.w);
     }
 
-    changeMomentum(force, delta) {
-        this.ballMomentum.x = this.ballMomentum.x + force.x * delta;
-        this.ballMomentum.y = this.ballMomentum.y + force.y * delta;
-        this.ballMomentum.z = this.ballMomentum.z + force.z * delta;
+    changeMomentum(delta) {
+        this.ballMomentum.x = this.ballMomentum.x + this.ballForce.x * delta;
+        this.ballMomentum.y = this.ballMomentum.y + this.ballForce.y * delta;
+        this.ballMomentum.z = this.ballMomentum.z + this.ballForce.z * delta;
     }
 
     changeAngularMomentum(delta) {
@@ -100,15 +101,14 @@ function main() {
     let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
     let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
-    var ballArray = [blueBallObject, redBallObject, greenBallObject, cueBallObject];
+    var ballArray = [cueBallObject, blueBallObject, redBallObject, greenBallObject];
 
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    for (let i = 0; i < ballArray.length; i++) {
-        ballArray[i].ballVelocity = new THREE.Vector3(0, 1, 0);
-        ballArray[i].ballOmega = new THREE.Vector3(0, 0, 0);
-    }
+    ballArray[0].ballVelocity = new THREE.Vector3(0, 1, 0);
+    ballArray[0].ballOmega = new THREE.Vector3(0, 0, 0);
+    ballArray[0].ballForce = new THREE.Vector3(0, 5, 0);
 
     let then = 0;
 
@@ -119,7 +119,6 @@ function main() {
 
         //STEP 1
         //We will calculate the forces here
-        let Ft = new THREE.Vector3(0, 10, 0);
 
         //Calculating torque due to gravity
         for (let i = 0; i < ballArray.length; i++) {
@@ -140,7 +139,7 @@ function main() {
 
         //Update momentum
         for (let i = 0; i < ballArray.length; i++) {
-            ballArray[i].changeMomentum(Ft, delta);
+            ballArray[i].changeMomentum(delta);
             ballArray[i].changeAngularMomentum(delta);
         }
 
