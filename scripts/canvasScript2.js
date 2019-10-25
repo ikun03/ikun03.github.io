@@ -153,6 +153,11 @@ function main() {
             ballImpulse.push(new THREE.Vector3(0, 0, 0));
         }
 
+        let ballRotImpulse = [];
+        for (let i = 0; i < ballArray.length; i++) {
+            ballRotImpulse.push(new THREE.Vector3(0, 0, 0));
+        }
+
         //STEP 1
         //We will calculate the forces here
 
@@ -161,7 +166,7 @@ function main() {
             let gravFric = ballArray[i].ballVelocity.clone().normalize().negate()
                 .multiplyScalar(ballArray[i].ballMass)
                 .multiplyScalar(9.8)
-                .multiplyScalar(0.4);
+                .multiplyScalar(0.8);
             let ballPointVector = new THREE.Vector3(0, 0, -0.5);
             ballArray[i].ballTorque = ballPointVector.cross(gravFric);
         }
@@ -243,6 +248,8 @@ function main() {
                     let J = J_numerator / J_denominator;
                     ballImpulse[i].sub(ball1NormalVector.clone().multiplyScalar(J));
                     ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
+                    ballRotImpulse[i].add(mulitplyMatrixVector(I1.getInverse(I1, false), ball1CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
+                    ballRotImpulse[j].add(mulitplyMatrixVector(I2.getInverse(I2, false), ball2CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
                     ballArray[i].ballForce = new THREE.Vector3(0, 0, 0);
 
                 }
@@ -252,7 +259,7 @@ function main() {
         //Update momentum
         for (let i = 0; i < ballArray.length; i++) {
             ballArray[i].changeMomentum(delta, ballImpulse[i]);
-            ballArray[i].changeAngularMomentum(delta, ballImpulse[i]);
+            ballArray[i].changeAngularMomentum(delta, ballRotImpulse[i]);
         }
 
         //STEP 3
