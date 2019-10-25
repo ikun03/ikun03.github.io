@@ -15,11 +15,10 @@ class Ball {
         this.ballRadius = this.ballMesh.geometry.parameters.radius;
         this.ballForce = new THREE.Vector3(0, 0, 0);
         this.ballPreviousPosition = new THREE.Vector3(0, 0, 0);
-        this.ballPreviousDelta = 0;
+        this.ballPreviousTime = 0;
     }
 
     move(delta) {
-        this.ballPreviousDelta = delta;
         this.ballPreviousPosition = this.ballMesh.position;
         this.ballMesh.position.x = this.ballMesh.position.x + (this.ballVelocity.x * delta);
         this.ballMesh.position.y = this.ballMesh.position.y + (this.ballVelocity.y * delta);
@@ -36,14 +35,15 @@ class Ball {
         this.ballMesh.quaternion.set(omegaQuaternion.x, omegaQuaternion.y, omegaQuaternion.z, omegaQuaternion.w);
     }
 
-    changeMomentum(delta) {
-        this.ballMomentum.x = this.ballMomentum.x + this.ballForce.x * delta;
-        this.ballMomentum.y = this.ballMomentum.y + this.ballForce.y * delta;
-        this.ballMomentum.z = this.ballMomentum.z + this.ballForce.z * delta;
+    changeMomentum(delta, impulse) {
+        this.ballPreviousTime += delta;
+        this.ballMomentum.x = this.ballMomentum.x + this.ballForce.x * delta + impulse.x;
+        this.ballMomentum.y = this.ballMomentum.y + this.ballForce.y * delta + impulse.y;
+        this.ballMomentum.z = this.ballMomentum.z + this.ballForce.z * delta + impulse.z;
     }
 
-    changeAngularMomentum(delta) {
-        this.ballAngularMomentum = this.ballAngularMomentum.add(this.ballTorque.multiplyScalar(delta))
+    changeAngularMomentum(delta, impulse) {
+        this.ballAngularMomentum = this.ballAngularMomentum.add(this.ballTorque.multiplyScalar(delta)).add(impulse);
     }
 
     updateVelocityFromMomentum() {
@@ -81,6 +81,24 @@ function calculatePositionFromDelta(ballArrayElement, midDel) {
     positionToReturn.y = ballArrayElement.ballPreviousPosition.y + (ballArrayElement.ballVelocity.y * midDel);
     positionToReturn.z = ballArrayElement.ballPreviousPosition.z + (ballArrayElement.ballVelocity.z * midDel);
     return positionToReturn;
+}
+
+function getIMatrix(ballArrayElement) {
+    let inertiaTensorValue = (2 / 5) * ballArrayElement.ballMass * ballArrayElement.ballRadius * ballArrayElement.ballRadius;
+    let matrix = new THREE.Matrix3();
+    matrix.set(inertiaTensorValue, 0, 0,
+        0, inertiaTensorValue, 0,
+        0, 0, inertiaTensorValue);
+    matrix.getInverse(matrix, false);
+    return matrix;
+}
+
+function mulitplyMatrixVector(inverse, vector1) {
+    let matrixArray = inverse.elements;
+    let element1 = vector1.x * matrixArray[0] + vector1.y * matrixArray[3] + vector1.z * matrixArray[6];
+    let element2 = vector1.x * matrixArray[1] + vector1.y * matrixArray[4] + vector1.z * matrixArray[7];
+    let element3 = vector1.x * matrixArray[2] + vector1.y * matrixArray[5] + vector1.z * matrixArray[8];
+    return new THREE.Vector3(element1, element2, element3);
 }
 
 function main() {
@@ -121,10 +139,7 @@ function main() {
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    ballArray[0].ballForce = new THREE.Vector3(0, 5, 0);
-    ballArray[1].ballForce = new THREE.Vector3(0, 5, 0);
-    ballArray[2].ballForce = new THREE.Vector3(0, 5, 0);
-    ballArray[3].ballForce = new THREE.Vector3(0, 5, 0);
+    ballArray[0].ballForce = new THREE.Vector3(0, 3, 0);
 
     let then = 0;
 
@@ -132,6 +147,11 @@ function main() {
         now *= 0.001;  // make it seconds
         const delta = now - then;
         then = now;
+
+        let ballImpulse = [];
+        for (let i = 0; i < ballArray.length; i++) {
+            ballImpulse.push(new THREE.Vector3(0, 0, 0));
+        }
 
         //STEP 1
         //We will calculate the forces here
@@ -154,70 +174,85 @@ function main() {
         }
 
         //perform collision detection and response here
-        // for (let i = 0; i < ballArray.length; i++) {
-        //     for (let j = i; j < ballArray.length; j++) {
-        //         if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) < 1) {
-        //             let previousDelta = ballArray[i].ballPreviousDelta;
-        //             let ball1 = ballArray[i].ballMesh;
-        //             let ball2 = ballArray[j].ballMesh;
-        //             let distance = getDistanceBetweenMesh(ball1.position, ball2.position);
-        //
-        //             //New Delta at which collision was detected
-        //             let newDelta = delta;
-        //
-        //             //These are needed for the search algorithm
-        //             let lDelta = previousDelta;
-        //             let rDelta = newDelta;
-        //             while (distance !== 1) {
-        //                 let midDel = (lDelta + rDelta) / 2;
-        //                 let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel);
-        //                 let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel);
-        //                 distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
-        //                 if (distance < 1) {
-        //                     rDelta = midDel;
-        //                 } else if (distance > 1) {
-        //                     lDelta = midDel;
-        //                 } else {
-        //                     //The actual delta of collision found
-        //                     newDelta = midDel;
-        //                     break;
-        //                 }
-        //             }
-        //             //We have the delta at which the collision took place
-        //             let ball1CollPos = calculatePositionFromDelta(ballArray[i], newDelta);
-        //             let ball2CollPos = calculatePositionFromDelta(ballArray[j], newDelta);
-        //
-        //             //Find the normal of collision for the ball
-        //             let ball1NormalVector = ball2CollPos.sub(ball1CollPos);
-        //             let ball2NormalVector = ball1CollPos.sub(ball2CollPos);
-        //             let ball1Angle = ballArray[i].ballVelocity.angleTo(ball1NormalVector);
-        //             let ball2Angle = ballArray[j].ballVelocity.angleTo(ball2NormalVector);
-        //
-        //             //Find the velocity along the collision normal
-        //             let ball1NormalVelocity = ballArray[i].ballVelocity.dot(ball1NormalVector);
-        //             let ball2NormalVelocity = ballArray[j].ballVelocity.dot(ball2NormalVector);
-        //             let sumOfNormalVelocitys = ball1NormalVelocity + ball2NormalVelocity;
-        //             let diffOfNormalVelocitys = ball1NormalVelocity - ball2NormalVelocity;
-        //             let ball2NormalAfter = (sumOfNormalVelocitys + diffOfNormalVelocitys) / 2;
-        //             let ball1NormalAfter = (sumOfNormalVelocitys - diffOfNormalVelocitys) / 2;
-        //
-        //             //Now the new velocity calculation
-        //             let ball1AfterVelocityVector = ball1NormalVector.normalize().multiplyScalar(ball1NormalAfter);
-        //             let ball2AfterVelocityVector = ball2NormalVector.normalize().multiplyScalar(ball2NormalAfter);
-        //             ballArray[i].ballVelocity = ballArray[i].ballVelocity + ball1AfterVelocityVector;
-        //             ballArray[j].ballVelocity = ballArray[j].ballVelocity + ball2
-        //
-        //             AfterVelocityVector;
-        //
-        //
-        //         }
-        //     }
-        // }
+        for (let i = 0; i < ballArray.length; i++) {
+            for (let j = i; j < ballArray.length; j++) {
+                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 1) {
+                    let previousTime = ballArray[i].ballPreviousTime;
+                    let ball1 = ballArray[i].ballMesh;
+                    let ball2 = ballArray[j].ballMesh;
+                    let distance = getDistanceBetweenMesh(ball1.position, ball2.position);
+
+                    //New Delta at which collision was detected
+                    let newDelta = delta;
+
+                    //These are needed for the search algorithm
+                    // let lDelta = previousTime;
+                    // let rDelta = newDelta;
+                    // while (distance !== 1 && lDelta < rDelta) {
+                    //     let midDel = (lDelta + rDelta) / 2;
+                    //     let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
+                    //     let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
+                    //     distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
+                    //     if (distance < 1) {
+                    //         rDelta = midDel;
+                    //     } else if (distance > 1) {
+                    //         lDelta = midDel;
+                    //     } else {
+                    //         //The actual delta of collision found
+                    //         newDelta = midDel;
+                    //         break;
+                    //     }
+                    // }
+                    //We have the delta at which the collision took place
+                    let ball1CollPos = calculatePositionFromDelta(ballArray[i], newDelta);
+                    let ball2CollPos = calculatePositionFromDelta(ballArray[j], newDelta);
+                    let collisionPoint = new THREE.Vector3(
+                        (ball1CollPos.x + ball2CollPos.x) / 2,
+                        (ball1CollPos.y + ball2CollPos.y) / 2,
+                        (ball1CollPos.z + ball2CollPos.z) / 2);
+
+                    let ball1CollisionRelative = collisionPoint.clone().sub(ball1CollPos);
+                    let ball2CollisionRelative = collisionPoint.clone().sub(ball2CollPos);
+
+                    //Find the normal of collision for the ball
+                    let ball1NormalVector = ball2CollPos.clone().sub(ball1CollPos).normalize();
+                    //let ball2NormalVector = ball1CollPos.sub(ball2CollPos);
+
+                    // //Find the velocity along the collision normal
+                    // let ball1NormalVelocity = ballArray[i].ballVelocity.dot(ball1NormalVector);
+                    // let ball2NormalVelocity = ballArray[j].ballVelocity.dot(ball1NormalVector);
+
+                    let vp1 = ballArray[i].ballVelocity.clone().add(ballArray[i].ballOmega.clone().cross(ball1CollisionRelative));
+                    let vp2 = ballArray[j].ballVelocity.clone().add(ballArray[j].ballOmega.clone().cross(ball2CollisionRelative));
+
+                    //Velocity along normal after collision
+                    let J_numerator = vp2.sub(vp1)
+                        .multiplyScalar(-1)
+                        .multiplyScalar(2).dot(ball1NormalVector);
+                    let I1 = getIMatrix(ballArray[i]);
+                    let I2 = getIMatrix(ballArray[j]);
+                    let vector1 = ball1CollisionRelative.clone().cross(ball1NormalVector);
+                    let vector2 = ball2CollisionRelative.clone().cross(ball1NormalVector);
+                    let result1 = mulitplyMatrixVector(I1.getInverse(I1, false), vector1);
+                    let result2 = mulitplyMatrixVector(I2.getInverse(I2, false), vector2);
+                    result1 = result1.cross(ball1CollisionRelative);
+                    result2 = result2.cross(ball2CollisionRelative);
+                    result1 = ball1NormalVector.dot(result1);
+                    result2 = ball1NormalVector.dot(result2);
+                    let J_denominator = 2 + result1 + result2;
+                    let J = J_numerator / J_denominator;
+                    ballImpulse[i].sub(ball1NormalVector.clone().multiplyScalar(J));
+                    ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
+                    ballArray[i].ballForce = new THREE.Vector3(0, 0, 0);
+
+                }
+            }
+        }
 
         //Update momentum
         for (let i = 0; i < ballArray.length; i++) {
-            ballArray[i].changeMomentum(delta);
-            ballArray[i].changeAngularMomentum(delta);
+            ballArray[i].changeMomentum(delta, ballImpulse[i]);
+            ballArray[i].changeAngularMomentum(delta, ballImpulse[i]);
         }
 
         //STEP 3
