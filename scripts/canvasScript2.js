@@ -186,39 +186,46 @@ function main() {
         //Calculating forces due to gravity
         for (let i = 0; i < ballArray.length; i++) {
             let ballObject = ballArray[i];
-            if (!ballObject.ballInNaturalRoll) {
-                let fricPoint = new THREE.Vector3(0, 0, -1);
-                let gravFric = ballObject.ballVelocity.clone().normalize().negate()
+            // if (!ballObject.ballInNaturalRoll) {
+            //     let fricPoint = new THREE.Vector3(0, 0, -1);
+            //     let gravFric = ballObject.ballVelocity.clone().normalize().negate()
+            //         .multiplyScalar(ballObject.ballMass)
+            //         .multiplyScalar(9.8)
+            //         .multiplyScalar(1.0);
+            //     ballObject.ballTorque = fricPoint.cross(gravFric);
+            //     if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
+            //         ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballInNaturalRoll = true;
+            //     }
+            // } else {
+            //     let fricPoint = new THREE.Vector3(0, 0, -1);
+            //     if (ballObject.ballVelocity.length() > 0) {
+            //         let rollFric = ballObject.ballVelocity.clone().normalize().negate()
+            //             .multiplyScalar(ballObject.ballMass)
+            //             .multiplyScalar(9.8)
+            //             .multiplyScalar(0.2);
+            //         ballObject.ballForce.add(rollFric);
+            //     }
+            //     if (ballObject.ballOmega.length() > 0) {
+            //         let rollFric = ballObject.ballVelocity.clone().normalize()
+            //             .multiplyScalar(ballObject.ballMass)
+            //             .multiplyScalar(9.8)
+            //             .multiplyScalar(0.2);
+            //         ballObject.ballTorque = fricPoint.cross(rollFric);
+            //     }
+            //     if (ballObject.ballOmega.length() < 0) {
+            //         ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballInNaturalRoll = false;
+            //     }
+            // }
+            if (ballObject.ballVelocity.length() > 0) {
+                let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(1.0);
-                ballObject.ballTorque = fricPoint.cross(gravFric);
-                if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
-                    ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballInNaturalRoll = true;
-                }
-            } else {
-                let fricPoint = new THREE.Vector3(0, 0, -1);
-                if (ballObject.ballVelocity.length() > 0) {
-                    let rollFric = ballObject.ballVelocity.clone().normalize().negate()
-                        .multiplyScalar(ballObject.ballMass)
-                        .multiplyScalar(9.8)
-                        .multiplyScalar(0.2);
-                    ballObject.ballForce.add(rollFric);
-                }
-                if (ballObject.ballOmega.length() > 0) {
-                    let rollFric = ballObject.ballVelocity.clone().normalize()
-                        .multiplyScalar(ballObject.ballMass)
-                        .multiplyScalar(9.8)
-                        .multiplyScalar(0.2);
-                    ballObject.ballTorque = fricPoint.cross(rollFric);
-                }
-                if (ballObject.ballOmega.length() < 0) {
-                    ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballInNaturalRoll = false;
-                }
+                    .multiplyScalar(0.2);
+                ballObject.ballForce.add(rollFric);
             }
             ballArray[i] = ballObject;
         }
@@ -285,7 +292,7 @@ function main() {
                     //Velocity along normal after collision
                     let J_numerator = vp2.sub(vp1)
                         .multiplyScalar(-1)
-                        .multiplyScalar(2).dot(ball1NormalVector);
+                        .multiplyScalar(1.5).dot(ball1NormalVector);
                     let I1 = getIMatrix(ballArray[i]);
                     let I2 = getIMatrix(ballArray[j]);
                     let vector1 = ball1CollisionRelative.clone().cross(ball1NormalVector);
