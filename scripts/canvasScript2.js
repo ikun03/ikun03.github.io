@@ -150,7 +150,7 @@ function main() {
     let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, -15, -20), 1);
     let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
-    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
+    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1.5);
     poolTableBottomEdge.position.set(0, -41, -20);
     poolTableRightEdge.position.set(21, 0, -20);
     poolTableTopEdge.position.set(0, 41, -20);
@@ -182,7 +182,6 @@ function main() {
 
         //STEP 1
         //We will calculate the forces here
-
         //Calculating forces due to gravity
         for (let i = 0; i < ballArray.length; i++) {
             let ballObject = ballArray[i];
@@ -224,7 +223,7 @@ function main() {
                 let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(0.2);
+                    .multiplyScalar(0.1);
                 ballObject.ballForce.add(rollFric);
             }
             ballArray[i] = ballObject;
@@ -240,7 +239,7 @@ function main() {
         //perform collision detection and response here
         for (let i = 0; i < ballArray.length; i++) {
             for (let j = i; j < ballArray.length; j++) {
-                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 1.5) {
+                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 2) {
                     let previousTime = ballArray[i].ballPreviousTime;
                     let ball1 = ballArray[i].ballMesh;
                     let ball2 = ballArray[j].ballMesh;
@@ -250,23 +249,23 @@ function main() {
                     let newDelta = delta;
 
                     //These are needed for the search algorithm
-                    // let lDelta = previousTime;
-                    // let rDelta = newDelta;
-                    // while (distance !== 1 && lDelta < rDelta) {
-                    //     let midDel = (lDelta + rDelta) / 2;
-                    //     let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
-                    //     let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
-                    //     distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
-                    //     if (distance < 1) {
-                    //         rDelta = midDel;
-                    //     } else if (distance > 1) {
-                    //         lDelta = midDel;
-                    //     } else {
-                    //         //The actual delta of collision found
-                    //         newDelta = midDel;
-                    //         break;
-                    //     }
-                    // }
+                    let lDelta = previousTime;
+                    let rDelta = newDelta;
+                    while (distance !== 1 && lDelta < rDelta) {
+                        let midDel = (lDelta + rDelta) / 2;
+                        let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
+                        let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
+                        distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
+                        if (distance < 2) {
+                            rDelta = midDel;
+                        } else if (distance > 2) {
+                            lDelta = midDel;
+                        } else {
+                            //The actual delta of collision found
+                            newDelta = midDel;
+                            break;
+                        }
+                    }
                     //We have the delta at which the collision took place
                     let ball1CollPos = calculatePositionFromDelta(ballArray[i], newDelta);
                     let ball2CollPos = calculatePositionFromDelta(ballArray[j], newDelta);
@@ -303,7 +302,7 @@ function main() {
                     result2 = result2.cross(ball2CollisionRelative);
                     result1 = ball1NormalVector.dot(result1);
                     result2 = ball1NormalVector.dot(result2);
-                    let J_denominator = 2 + result1 + result2;
+                    let J_denominator = 1.66 + result1 + result2;
                     let J = J_numerator / J_denominator;
                     ballImpulse[i].sub(ball1NormalVector.clone().multiplyScalar(J));
                     ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
