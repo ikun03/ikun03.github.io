@@ -150,7 +150,7 @@ function main() {
     let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, -15, -20), 1);
     let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
-    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1.5);
+    let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
     poolTableBottomEdge.position.set(0, -41, -20);
     poolTableRightEdge.position.set(21, 0, -20);
     poolTableTopEdge.position.set(0, 41, -20);
@@ -291,7 +291,7 @@ function main() {
                     //Velocity along normal after collision
                     let J_numerator = vp2.sub(vp1)
                         .multiplyScalar(-1)
-                        .multiplyScalar(1.5).dot(ball1NormalVector);
+                        .multiplyScalar(2).dot(ball1NormalVector);
                     let I1 = getIMatrix(ballArray[i]);
                     let I2 = getIMatrix(ballArray[j]);
                     let vector1 = ball1CollisionRelative.clone().cross(ball1NormalVector);
@@ -302,7 +302,7 @@ function main() {
                     result2 = result2.cross(ball2CollisionRelative);
                     result1 = ball1NormalVector.dot(result1);
                     result2 = ball1NormalVector.dot(result2);
-                    let J_denominator = 1.66 + result1 + result2;
+                    let J_denominator = 2 + result1 + result2;
                     let J = J_numerator / J_denominator;
                     ballImpulse[i].sub(ball1NormalVector.clone().multiplyScalar(J));
                     ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
