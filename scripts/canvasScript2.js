@@ -7,17 +7,7 @@ class Ball {
         this.ballMesh.quaternion.set(0, 0, 0, 0);
         this.ballMass = mass;
 
-        //Translational motion variables
-        this.ballVelocity = new THREE.Vector3(0, 0, 0);
-        this.ballMomentum = new THREE.Vector3(0, 0, 0);
-        this.ballForce = new THREE.Vector3(0, 0, 0);
-
-        //Rotational motion  variables
-        this.ballOmega = new THREE.Vector3(0, 0, 0);
-        this.ballTorque = new THREE.Vector3(0, 0, 0);
-        this.ballAngularMomentum = new THREE.Vector3(0, 0, 0);
-        this.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
-        this.ballInNaturalRoll = false;
+        this.stopBallMotion();
 
         //For collision calculation
         this.ballPreviousPosition = new THREE.Vector3(0, 0, 0);
@@ -73,6 +63,20 @@ class Ball {
         let element2 = ballM.x * matrixArray[1] + ballM.y * matrixArray[4] + ballM.z * matrixArray[7];
         let element3 = ballM.x * matrixArray[2] + ballM.y * matrixArray[5] + ballM.z * matrixArray[8];
         this.ballOmega = new THREE.Vector3(element1, element2, element3);
+    }
+
+    stopBallMotion() {
+        //Translational motion variables
+        this.ballVelocity = new THREE.Vector3(0, 0, 0);
+        this.ballMomentum = new THREE.Vector3(0, 0, 0);
+        this.ballForce = new THREE.Vector3(0, 0, 0);
+
+        //Rotational motion  variables
+        this.ballOmega = new THREE.Vector3(0, 0, 0);
+        this.ballTorque = new THREE.Vector3(0, 0, 0);
+        this.ballAngularMomentum = new THREE.Vector3(0, 0, 0);
+        this.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
+        this.ballInNaturalRoll = false;
     }
 
 }
@@ -187,7 +191,7 @@ function main() {
                 let gravFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(0.8);
+                    .multiplyScalar(1.0);
                 ballObject.ballTorque = fricPoint.cross(gravFric);
                 if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
                     ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
@@ -300,6 +304,13 @@ function main() {
                     ballRotImpulse[j].add(mulitplyMatrixVector(I2.getInverse(I2, false), ball2CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
 
                 }
+            }
+        }
+
+        for (let i = 0; i < ballArray.length; i++) {
+            let positionVec = ballArray[i].ballMesh.position;
+            if (positionVec.x > 19 || positionVec.x < (-19) || positionVec.y > 39 || positionVec.y < (-39)) {
+                ballArray[i].stopBallMotion();
             }
         }
 
