@@ -223,7 +223,7 @@ function main() {
                 let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(0.1);
+                    .multiplyScalar(0.3);
                 ballObject.ballForce.add(rollFric);
             }
             ballArray[i] = ballObject;
