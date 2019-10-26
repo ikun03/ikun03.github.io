@@ -8,8 +8,8 @@ class Ball {
         this.ballMesh.quaternion.set(0, 0, 0, 0);
         this.ballVelocity = new THREE.Vector3(0, 0, 0);
         this.ballMass = mass;
-        this.ballOmega = 0;
-        this.ballTorque = 0;
+        this.ballOmega = new THREE.Vector3(0, 0, 0);
+        this.ballTorque = new THREE.Vector3(0, 0, 0);
         this.ballMomentum = new THREE.Vector3(0, 0, 0);
         this.ballAngularMomentum = new THREE.Vector3(0, 0, 0);
         this.ballRadius = this.ballMesh.geometry.parameters.radius;
@@ -105,7 +105,8 @@ function main() {
     let scene = new THREE.Scene();
     let renderWidth = 700;
     let renderHeight = 700;
-    let camera = new THREE.PerspectiveCamera(75, renderWidth / renderHeight, 0.01, 1000);
+    //let camera = new THREE.PerspectiveCamera(75, renderWidth / renderHeight, 0.01, 1000);
+    let camera = new THREE.OrthographicCamera(-25, 25, 25, -25, 1, 100);
 
     let renderer = new THREE.WebGLRenderer();
     renderer.setSize(renderWidth, renderHeight);
@@ -139,7 +140,7 @@ function main() {
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    ballArray[0].ballForce = new THREE.Vector3(0, 3, 0);
+    ballArray[0].ballForce = new THREE.Vector3(-4, 3, 0);
 
     let then = 0;
 
@@ -163,12 +164,15 @@ function main() {
 
         //Calculating torque due to gravity
         for (let i = 0; i < ballArray.length; i++) {
-            let gravFric = ballArray[i].ballVelocity.clone().normalize().negate()
-                .multiplyScalar(ballArray[i].ballMass)
-                .multiplyScalar(9.8)
-                .multiplyScalar(0.8);
-            let ballPointVector = new THREE.Vector3(0, 0, -0.5);
-            ballArray[i].ballTorque = ballPointVector.cross(gravFric);
+            let fricBall = ballArray[i];
+            if (fricBall.ballVelocity !== fricBall.ballOmega.clone().multiplyScalar(fricBall.ballRadius)) {
+                let gravFric = ballArray[i].ballVelocity.clone().normalize().negate()
+                    .multiplyScalar(ballArray[i].ballMass)
+                    .multiplyScalar(9.8)
+                    .multiplyScalar(0.8);
+                let ballPointVector = new THREE.Vector3(0, 0, -0.5);
+                ballArray[i].ballTorque = ballPointVector.cross(gravFric);
+            }
         }
 
         //STEP 2
@@ -181,7 +185,7 @@ function main() {
         //perform collision detection and response here
         for (let i = 0; i < ballArray.length; i++) {
             for (let j = i; j < ballArray.length; j++) {
-                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 1) {
+                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 1.5) {
                     let previousTime = ballArray[i].ballPreviousTime;
                     let ball1 = ballArray[i].ballMesh;
                     let ball2 = ballArray[j].ballMesh;
@@ -250,7 +254,6 @@ function main() {
                     ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
                     ballRotImpulse[i].add(mulitplyMatrixVector(I1.getInverse(I1, false), ball1CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
                     ballRotImpulse[j].add(mulitplyMatrixVector(I2.getInverse(I2, false), ball2CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
-                    ballArray[i].ballForce = new THREE.Vector3(0, 0, 0);
 
                 }
             }
@@ -267,6 +270,7 @@ function main() {
             ballArray[i].updateVelocityFromMomentum();
             ballArray[i].updateAngularVelocityFromMomentum();
         }
+        ballArray[0].ballForce = new THREE.Vector3(0, 0, 0);
 
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
