@@ -1,7 +1,4 @@
 class Ball {
-
-    translation = new THREE.Vector3(0, 0, 0);
-
     constructor(ballMesh, position, mass) {
         //Basic object properties
         this.ballMesh = ballMesh;
@@ -117,7 +114,7 @@ function main() {
     let renderWidth = 700;
     let renderHeight = 700;
     //let camera = new THREE.PerspectiveCamera(75, renderWidth / renderHeight, 0.01, 1000);
-    let camera = new THREE.OrthographicCamera(-25, 25, 25, -25, 1, 100);
+    let camera = new THREE.OrthographicCamera(-50, 50, 50, -50, 1, 100);
 
     let renderer = new THREE.WebGLRenderer();
     renderer.setSize(renderWidth, renderHeight);
@@ -136,7 +133,11 @@ function main() {
     let blueBall = getSphere(blueBallTexture);
     let redBall = getSphere(redBallTexture);
     let greenBall = getSphere(greenBallTexture);
-    let poolTable = getCube(billiardsTableTexture);
+    let poolTable = getCube("texture", billiardsTableTexture, 40, 80, 0.5);
+    let poolTableBottomEdge = getCube("color", 0x0a6c03, 44, 2, 2);
+    let poolTableRightEdge = getCube("color", 0x0a6c03, 2, 84, 2);
+    let poolTableTopEdge = getCube("color", 0x0a6c03, 44, 2, 2);
+    let poolTableLeftEdge = getCube("color", 0x0a6c03, 2, 84, 2);
     let cueBall = getSphere(cueTexture);
 
     camera.position.z = 5;
@@ -146,9 +147,14 @@ function main() {
     let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
     let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
-    var ballArray = [cueBallObject, blueBallObject, redBallObject, greenBallObject];
+    poolTableBottomEdge.position.set(0, -41, -20);
+    poolTableRightEdge.position.set(21, 0, -20);
+    poolTableTopEdge.position.set(0, 41, -20);
+    poolTableLeftEdge.position.set(-21, 0, -20);
 
-    scene.add(blueBall, redBall, greenBall, poolTable, cueBall);
+    let ballArray = [cueBallObject, blueBallObject, redBallObject, greenBallObject];
+
+    scene.add(blueBall, redBall, greenBall, poolTable, cueBall, poolTableBottomEdge, poolTableRightEdge, poolTableTopEdge, poolTableLeftEdge);
 
     //For now we are just giving the ball sample translational and rotational velocity
     ballArray[0].ballForce = new THREE.Vector3(-60, 60, 0);
@@ -322,14 +328,21 @@ function main() {
 
 main();
 
-function getCube(texture) {
-    var geometry = new THREE.BoxGeometry(40, 40, 0.5);
-    var material = new THREE.MeshBasicMaterial({map: texture});
-    return new THREE.Mesh(geometry, material);
+function getCube(type, texture, width, height, depth) {
+    if (type === "texture") {
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        const material = new THREE.MeshBasicMaterial({map: texture});
+        return new THREE.Mesh(geometry, material);
+    } else {
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        const material = new THREE.MeshBasicMaterial({color: texture});
+        return new THREE.Mesh(geometry, material);
+    }
+
 }
 
 function getSphere(texture) {
-    var geometry = new THREE.SphereGeometry(1, 20, 20);
-    var material = new THREE.MeshBasicMaterial({map: texture});
+    const geometry = new THREE.SphereGeometry(1, 20, 20);
+    const material = new THREE.MeshBasicMaterial({map: texture});
     return new THREE.Mesh(geometry, material);
 }
