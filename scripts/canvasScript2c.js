@@ -147,8 +147,8 @@ function main() {
     camera.position.z = 5;
     poolTable.position.set(0, 0, -21);
 
-    let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, -15, -20), 1);
-    let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
+    let blueBallObject = new Ball(blueBall, new THREE.Vector3(-16, -5, -20), 1);
+    let redBallObject = new Ball(redBall, new THREE.Vector3(-13, -5, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
     let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
     poolTableBottomEdge.position.set(0, -41, -20);

@@ -252,8 +252,8 @@ function main() {
 
                     //These are needed for the search algorithm
                     let lDelta = (previousTime);
-                    let rDelta = (previousTime + newDelta);
-                    let limit = 10;
+                    let rDelta = (previousTime + delta);
+                    let limit = 20;
                     let counter = 0;
                     while (lDelta < rDelta && counter < limit) {
                         let midDel = (lDelta + rDelta) / 2;
@@ -261,10 +261,10 @@ function main() {
                         let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
                         let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
                         distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
-                        if (distance > 2.1) {
+                        if (distance > 2.05) {
                             rDelta = midDel;
                             counter += 1
-                        } else if (distance < 1.9) {
+                        } else if (distance < 1.95) {
                             lDelta = midDel;
                             counter += 1;
                         } else {
