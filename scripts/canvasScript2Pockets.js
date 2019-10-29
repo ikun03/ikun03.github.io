@@ -156,14 +156,28 @@ function main() {
     poolTableTopEdge.position.set(0, 41, -20);
     poolTableLeftEdge.position.set(-21, 0, -20);
 
+    let pocket1 = getCircle();
+    pocket1.position.set(-19, 39, -20);
+    let pocket2 = getCircle();
+    pocket2.position.set(19, 39, -20);
+    let pocket3 = getCircle();
+    pocket3.position.set(-19, -39, -20);
+    let pocket4 = getCircle();
+    pocket4.position.set(19, -39, -20);
+    let pocket5 = getCircle();
+    pocket5.position.set(-19, 0, -20);
+    let pocket6 = getCircle();
+    pocket6.position.set(19, 0, -20);
+    scene.add(pocket1, pocket2, pocket3, pocket4, pocket5, pocket6);
     let ballArray = [cueBallObject, blueBallObject, redBallObject, greenBallObject];
 
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall, poolTableBottomEdge, poolTableRightEdge, poolTableTopEdge, poolTableLeftEdge);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    ballArray[0].ballForce = new THREE.Vector3(-60, 60, 0);
+    ballArray[0].ballForce = new THREE.Vector3(-100, 100, 0);
 
     let then = 0;
+
     let coefficientOfRestitution = 0.7;
 
     function animate(now) {
@@ -186,47 +200,47 @@ function main() {
         //Calculating forces due to gravity
         for (let i = 0; i < ballArray.length; i++) {
             let ballObject = ballArray[i];
-            if (!ballObject.ballInNaturalRoll) {
-                let fricPoint = new THREE.Vector3(0, 0, -1);
-                let gravFric = ballObject.ballVelocity.clone().normalize().negate()
-                    .multiplyScalar(ballObject.ballMass)
-                    .multiplyScalar(9.8)
-                    .multiplyScalar(1.0);
-                ballObject.ballTorque = fricPoint.cross(gravFric);
-                if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
-                    ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballInNaturalRoll = true;
-                }
-            } else {
-                let fricPoint = new THREE.Vector3(0, 0, -1);
-                if (ballObject.ballVelocity.length() > 0) {
-                    let rollFric = ballObject.ballVelocity.clone().normalize().negate()
-                        .multiplyScalar(ballObject.ballMass)
-                        .multiplyScalar(9.8)
-                        .multiplyScalar(0.8);
-                    ballObject.ballForce.add(rollFric);
-                }
-                if (ballObject.ballOmega.length() > 0) {
-                    let rollFric = ballObject.ballVelocity.clone().normalize()
-                        .multiplyScalar(ballObject.ballMass)
-                        .multiplyScalar(9.8)
-                        .multiplyScalar(0.8);
-                    ballObject.ballTorque = fricPoint.cross(rollFric);
-                }
-                if (ballObject.ballOmega.length() < 0) {
-                    ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
-                    ballObject.ballInNaturalRoll = false;
-                }
-            }
-            /*if (ballObject.ballVelocity.length() > 0) {
+            // if (!ballObject.ballInNaturalRoll) {
+            //     let fricPoint = new THREE.Vector3(0, 0, -1);
+            //     let gravFric = ballObject.ballVelocity.clone().normalize().negate()
+            //         .multiplyScalar(ballObject.ballMass)
+            //         .multiplyScalar(9.8)
+            //         .multiplyScalar(1.0);
+            //     ballObject.ballTorque = fricPoint.cross(gravFric);
+            //     if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
+            //         ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballInNaturalRoll = true;
+            //     }
+            // } else {
+            //     let fricPoint = new THREE.Vector3(0, 0, -1);
+            //     if (ballObject.ballVelocity.length() > 0) {
+            //         let rollFric = ballObject.ballVelocity.clone().normalize().negate()
+            //             .multiplyScalar(ballObject.ballMass)
+            //             .multiplyScalar(9.8)
+            //             .multiplyScalar(0.2);
+            //         ballObject.ballForce.add(rollFric);
+            //     }
+            //     if (ballObject.ballOmega.length() > 0) {
+            //         let rollFric = ballObject.ballVelocity.clone().normalize()
+            //             .multiplyScalar(ballObject.ballMass)
+            //             .multiplyScalar(9.8)
+            //             .multiplyScalar(0.2);
+            //         ballObject.ballTorque = fricPoint.cross(rollFric);
+            //     }
+            //     if (ballObject.ballOmega.length() < 0) {
+            //         ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
+            //         ballObject.ballInNaturalRoll = false;
+            //     }
+            // }
+            if (ballObject.ballVelocity.length() > 0) {
                 let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(0.3);
+                    .multiplyScalar(0.5);
                 ballObject.ballForce.add(rollFric);
-            }*/
+            }
             ballArray[i] = ballObject;
         }
 
@@ -237,10 +251,24 @@ function main() {
             ballArray[i].rotateInQuaternion(delta);
         }
 
+        for (let i = 0; i < ballArray.length; i++) {
+            let ballPosition = ballArray[i].ballMesh.position;
+            if (getDistanceBetweenMesh(pocket1.position, ballPosition) <= 1.5 ||
+                getDistanceBetweenMesh(pocket2.position, ballPosition) <= 1.5 ||
+                getDistanceBetweenMesh(pocket3.position, ballPosition) <= 1.5 ||
+                getDistanceBetweenMesh(pocket4.position, ballPosition) <= 1.5 ||
+                getDistanceBetweenMesh(pocket5.position, ballPosition) <= 1.5 ||
+                getDistanceBetweenMesh(pocket6.position, ballPosition) <= 1.5
+            ) {
+                scene.remove(ballArray[i].ballMesh);
+                ballArray.splice(i, 1);
+            }
+        }
+
         //perform collision detection and response here
         for (let i = 0; i < ballArray.length; i++) {
             for (let j = i; j < ballArray.length; j++) {
-                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 2) {
+                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 2.1) {
                     let previousTime = ballArray[i].ballPreviousTime;
                     let ball1 = ballArray[i].ballMesh;
                     let ball2 = ballArray[j].ballMesh;
@@ -250,20 +278,25 @@ function main() {
                     let newDelta = delta;
 
                     //These are needed for the search algorithm
-                    let lDelta = previousTime;
-                    let rDelta = newDelta;
-                    while (distance !== 1 && lDelta < rDelta) {
+                    let lDelta = (previousTime);
+                    let rDelta = (previousTime + delta);
+                    let limit = 20;
+                    let counter = 0;
+                    while (lDelta < rDelta && counter < limit) {
                         let midDel = (lDelta + rDelta) / 2;
+                        newDelta = midDel - previousTime;
                         let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
                         let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
                         distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
-                        if (distance < 2) {
+                        if (distance > 2.05) {
                             rDelta = midDel;
-                        } else if (distance > 2) {
+                            counter += 1
+                        } else if (distance < 1.95) {
                             lDelta = midDel;
+                            counter += 1;
                         } else {
                             //The actual delta of collision found
-                            newDelta = midDel;
+                            newDelta = midDel - previousTime;
                             break;
                         }
                     }
@@ -274,7 +307,6 @@ function main() {
                         (ball1CollPos.x + ball2CollPos.x) / 2,
                         (ball1CollPos.y + ball2CollPos.y) / 2,
                         (ball1CollPos.z + ball2CollPos.z) / 2);
-
                     let ball1CollisionRelative = collisionPoint.clone().sub(ball1CollPos);
                     let ball2CollisionRelative = collisionPoint.clone().sub(ball2CollPos);
 
@@ -307,7 +339,7 @@ function main() {
                     let J = J_numerator / J_denominator;
                     ballImpulse[i].sub(ball1NormalVector.clone().multiplyScalar(J));
                     ballImpulse[j].add(ball1NormalVector.clone().multiplyScalar(J));
-                    ballRotImpulse[i].add(mulitplyMatrixVector(I1.getInverse(I1, false), ball1CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
+                    ballRotImpulse[i].sub(mulitplyMatrixVector(I1.getInverse(I1, false), ball1CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
                     ballRotImpulse[j].add(mulitplyMatrixVector(I2.getInverse(I2, false), ball2CollisionRelative.cross(ball1NormalVector)).multiplyScalar(J));
 
                 }
@@ -367,6 +399,12 @@ function getCube(type, texture, width, height, depth) {
         return new THREE.Mesh(geometry, material);
     }
 
+}
+
+function getCircle() {
+    let geometry = new THREE.CircleGeometry(1.5, 32);
+    let material = new THREE.MeshBasicMaterial({color: 0x000000});
+    return new THREE.Mesh(geometry, material);
 }
 
 function getSphere(texture) {
