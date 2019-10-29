@@ -147,8 +147,8 @@ function main() {
     camera.position.z = 5;
     poolTable.position.set(0, 0, -21);
 
-    let blueBallObject = new Ball(blueBall, new THREE.Vector3(5, -15, -20), 1);
-    let redBallObject = new Ball(redBall, new THREE.Vector3(0, -10, -20), 1);
+    let blueBallObject = new Ball(blueBall, new THREE.Vector3(-16, -5, -20), 1);
+    let redBallObject = new Ball(redBall, new THREE.Vector3(-13, -5, -20), 1);
     let greenBallObject = new Ball(greenBall, new THREE.Vector3(-5, -15, -20), 1);
     let cueBallObject = new Ball(cueBall, new THREE.Vector3(0, -20, -20), 1);
     poolTableBottomEdge.position.set(0, -41, -20);
@@ -161,9 +161,11 @@ function main() {
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall, poolTableBottomEdge, poolTableRightEdge, poolTableTopEdge, poolTableLeftEdge);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    ballArray[0].ballForce = new THREE.Vector3(-45, 45, 0);
+    ballArray[0].ballForce = new THREE.Vector3(-100, 100, 0);
 
     let then = 0;
+
+    let coefficientOfRestitution = 0.7;
 
     function animate(now) {
 
@@ -223,7 +225,7 @@ function main() {
                 let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(0.2);
+                    .multiplyScalar(0.5);
                 ballObject.ballForce.add(rollFric);
             }
             ballArray[i] = ballObject;
@@ -239,7 +241,7 @@ function main() {
         //perform collision detection and response here
         for (let i = 0; i < ballArray.length; i++) {
             for (let j = i; j < ballArray.length; j++) {
-                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 2) {
+                if (i !== j && getDistanceBetweenMesh(ballArray[i].ballMesh.position, ballArray[j].ballMesh.position) <= 2.1) {
                     let previousTime = ballArray[i].ballPreviousTime;
                     let ball1 = ballArray[i].ballMesh;
                     let ball2 = ballArray[j].ballMesh;
@@ -278,7 +280,6 @@ function main() {
                         (ball1CollPos.x + ball2CollPos.x) / 2,
                         (ball1CollPos.y + ball2CollPos.y) / 2,
                         (ball1CollPos.z + ball2CollPos.z) / 2);
-
                     let ball1CollisionRelative = collisionPoint.clone().sub(ball1CollPos);
                     let ball2CollisionRelative = collisionPoint.clone().sub(ball2CollPos);
 
@@ -296,7 +297,7 @@ function main() {
                     //Velocity along normal after collision
                     let J_numerator = vp2.sub(vp1)
                         .multiplyScalar(-1)
-                        .multiplyScalar(1.7).dot(ball1NormalVector);
+                        .multiplyScalar(2).dot(ball1NormalVector);
                     let I1 = getIMatrix(ballArray[i]);
                     let I2 = getIMatrix(ballArray[j]);
                     let vector1 = ball1CollisionRelative.clone().cross(ball1NormalVector);
@@ -320,8 +321,18 @@ function main() {
 
         for (let i = 0; i < ballArray.length; i++) {
             let positionVec = ballArray[i].ballMesh.position;
-            if (positionVec.x > 19 || positionVec.x < (-19) || positionVec.y > 39 || positionVec.y < (-39)) {
-                ballArray[i].stopBallMotion();
+            if (positionVec.x > 19 || positionVec.x < (-19)) {
+                let ballIMoment = ballArray[i].ballMomentum;
+                ballArray[i].ballMomentum = new THREE.Vector3(ballIMoment.x * -1 * coefficientOfRestitution,
+                    ballIMoment.y * coefficientOfRestitution,
+                    ballIMoment.z * coefficientOfRestitution);
+            }
+
+            if (positionVec.y > 39 || positionVec.y < (-39)) {
+                let ballIMoment = ballArray[i].ballMomentum;
+                ballArray[i].ballMomentum = new THREE.Vector3(ballIMoment.x * coefficientOfRestitution,
+                    ballIMoment.y * -1 * coefficientOfRestitution,
+                    ballIMoment.z * coefficientOfRestitution);
             }
         }
 

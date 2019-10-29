@@ -50,8 +50,8 @@ function main() {
     }
 
     camera.position.x = 0;
-    camera.position.z = 7;
-    camera.position.y = 7;
+    camera.position.z = 35;
+    camera.position.y = 35;
     camera.lookAt(new THREE.Vector3(0, -1, -1));
 
     let animate = function () {

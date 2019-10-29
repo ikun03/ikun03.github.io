@@ -164,6 +164,7 @@ function main() {
     ballArray[0].ballForce = new THREE.Vector3(-60, 60, 0);
 
     let then = 0;
+    let coefficientOfRestitution = 1;
 
     function animate(now) {
 
@@ -291,7 +292,7 @@ function main() {
                     //Velocity along normal after collision
                     let J_numerator = vp2.sub(vp1)
                         .multiplyScalar(-1)
-                        .multiplyScalar(2).dot(ball1NormalVector);
+                        .multiplyScalar(1 + coefficientOfRestitution).dot(ball1NormalVector);
                     let I1 = getIMatrix(ballArray[i]);
                     let I2 = getIMatrix(ballArray[j]);
                     let vector1 = ball1CollisionRelative.clone().cross(ball1NormalVector);
@@ -315,8 +316,18 @@ function main() {
 
         for (let i = 0; i < ballArray.length; i++) {
             let positionVec = ballArray[i].ballMesh.position;
-            if (positionVec.x > 19 || positionVec.x < (-19) || positionVec.y > 39 || positionVec.y < (-39)) {
-                ballArray[i].stopBallMotion();
+            if (positionVec.x > 19 || positionVec.x < (-19)) {
+                let ballIMoment = ballArray[i].ballMomentum;
+                ballArray[i].ballMomentum = new THREE.Vector3(ballIMoment.x * -1 * coefficientOfRestitution,
+                    ballIMoment.y * coefficientOfRestitution,
+                    ballIMoment.z * coefficientOfRestitution);
+            }
+
+            if (positionVec.y > 39 || positionVec.y < (-39)) {
+                let ballIMoment = ballArray[i].ballMomentum;
+                ballArray[i].ballMomentum = new THREE.Vector3(ballIMoment.x * coefficientOfRestitution,
+                    ballIMoment.y * -1 * coefficientOfRestitution,
+                    ballIMoment.z * coefficientOfRestitution);
             }
         }
 
