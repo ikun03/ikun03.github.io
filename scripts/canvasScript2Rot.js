@@ -217,13 +217,13 @@ function main() {
                     ballObject.ballForce.add(rollFric);
                 }
                 if (ballObject.ballOmega.length() > 0) {
-                    let rollFric = ballObject.ballVelocity.clone().normalize()
+                    let rollFric = ballObject.ballOmega.clone().normalize().negate()
                         .multiplyScalar(ballObject.ballMass)
                         .multiplyScalar(9.8)
                         .multiplyScalar(0.3);
-                    ballObject.ballTorque = fricPoint.cross(rollFric);
+                    ballObject.ballTorque.add(fricPoint.cross(rollFric));
                 }
-                if (ballObject.ballOmega.length() < 0) {
+                if (ballObject.ballOmega.length() <= 0) {
                     ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
                     ballObject.ballTorque = new THREE.Vector3(0, 0, 0);
                     ballObject.ballInNaturalRoll = false;
