@@ -33,6 +33,15 @@ class Ball {
 
     changeMomentum(delta, impulse) {
         this.ballPreviousTime += delta;
+        if (Math.abs(impulse.x) > 0) {
+            this.ballForce.x = 0;
+        }
+        if (Math.abs(impulse.y) > 0) {
+            this.ballForce.y = 0;
+        }
+        if (Math.abs(impulse.z) > 0) {
+            this.ballForce.z = 0;
+        }
         this.ballMomentum.x = this.ballMomentum.x + this.ballForce.x * delta + impulse.x;
         this.ballMomentum.y = this.ballMomentum.y + this.ballForce.y * delta + impulse.y;
         this.ballMomentum.z = this.ballMomentum.z + this.ballForce.z * delta + impulse.z;
@@ -191,7 +200,7 @@ function main() {
                 let gravFric = ballObject.ballVelocity.clone().normalize().negate()
                     .multiplyScalar(ballObject.ballMass)
                     .multiplyScalar(9.8)
-                    .multiplyScalar(1.0);
+                    .multiplyScalar(0.8);
                 ballObject.ballTorque = fricPoint.cross(gravFric);
                 if (ballObject.ballVelocity.length() <= ballObject.ballOmega.clone().multiplyScalar(ballObject.ballRadius).length()) {
                     ballObject.ballGravAngularMomentum = new THREE.Vector3(0, 0, 0);
@@ -204,14 +213,14 @@ function main() {
                     let rollFric = ballObject.ballVelocity.clone().normalize().negate()
                         .multiplyScalar(ballObject.ballMass)
                         .multiplyScalar(9.8)
-                        .multiplyScalar(0.8);
+                        .multiplyScalar(0.3);
                     ballObject.ballForce.add(rollFric);
                 }
                 if (ballObject.ballOmega.length() > 0) {
                     let rollFric = ballObject.ballVelocity.clone().normalize()
                         .multiplyScalar(ballObject.ballMass)
                         .multiplyScalar(9.8)
-                        .multiplyScalar(0.8);
+                        .multiplyScalar(0.3);
                     ballObject.ballTorque = fricPoint.cross(rollFric);
                 }
                 if (ballObject.ballOmega.length() < 0) {
@@ -251,19 +260,24 @@ function main() {
 
                     //These are needed for the search algorithm
                     let lDelta = previousTime;
-                    let rDelta = newDelta;
-                    while (distance !== 1 && lDelta < rDelta) {
+                    let rDelta = previousTime + newDelta;
+                    let limit = 10;
+                    let counter = 0;
+                    while (lDelta < rDelta && counter < limit) {
                         let midDel = (lDelta + rDelta) / 2;
+                        newDelta = midDel - previousTime;
                         let ball1DelPos = calculatePositionFromDelta(ballArray[i], midDel - previousTime);
                         let ball2DelPos = calculatePositionFromDelta(ballArray[j], midDel - previousTime);
                         distance = getDistanceBetweenMesh(ball1DelPos, ball2DelPos);
                         if (distance < 2) {
                             rDelta = midDel;
+                            counter += 1;
                         } else if (distance > 2) {
                             lDelta = midDel;
+                            counter += 1;
                         } else {
                             //The actual delta of collision found
-                            newDelta = midDel;
+                            newDelta = midDel - previousTime;
                             break;
                         }
                     }
