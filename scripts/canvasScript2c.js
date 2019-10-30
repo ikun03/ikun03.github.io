@@ -170,7 +170,7 @@ function main() {
     scene.add(blueBall, redBall, greenBall, poolTable, cueBall, poolTableBottomEdge, poolTableRightEdge, poolTableTopEdge, poolTableLeftEdge);
 
     //For now we are just giving the ball sample translational and rotational velocity
-    ballArray[0].ballForce = new THREE.Vector3(-60, 60, 0);
+    ballArray[0].ballForce = new THREE.Vector3(-200, 200, 0);
 
     let then = 0;
     let coefficientOfRestitution = 1;
