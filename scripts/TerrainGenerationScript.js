@@ -42,12 +42,19 @@ function main() {
     let point3 = new Point(-3 * absoluteMax, 0, -3 * absoluteMax);
     let pointList = [point1, point2, point3];
     drawTriangle(point1, point2, point3);
+
+    // We have created the Delaunay tree here and initialized it with
+    // the root node
     let root = new Node(pointList);
     let tree = new DelaunayTree(root);
 
-    for (let i = 0; i < points.length; i++) {
-        scene.add(points[i].pointObject);
-    }
+    // Add the points to the scene
+    // for (let i = 0; i < points.length; i++) {
+    //     scene.add(points[i].pointObject);
+    // }
+
+    // We add the points to the triangulation one by one
+    addPointToTree(tree, points.pop());
 
     camera.position.x = 0;
     camera.position.z = 35;
@@ -101,13 +108,43 @@ class Node {
         this.incomingNodes = [];
         this.outgoingNodes = [];
         this.isOld = false;
+        this.nodeLevel = -1;
     }
 }
 
 class DelaunayTree {
     constructor(rootNode) {
         this.root = rootNode;
+        this.root.nodeLevel = 0;
     }
 }
+
+function isPointInsideTriangle(triangleNode, point) {
+    let A = triangleNode.vertices[0];
+    let B = triangleNode.vertices[1];
+    let C = triangleNode.vertices[2];
+
+    let w1 = (A.x * (C.y - A.y) + (point.y - A.y) * (C.x - A.x) - point.x * (C.y - A.y)) /
+        ((B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y));
+    let w2 = (point.y - A.y - w1 * (B.y - A.y)) / (C.y - A.y);
+    return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
+
+}
+
+function addPointToTree(tree, point) {
+    let isPointAdded = false;
+    let nodes = [tree.root];
+    while (!isPointAdded) {
+        let triangleNode = nodes.pop();
+        if (isPointInsideTriangle(triangleNode, point)) {
+            if (!triangleNode.isOld) {
+
+            } else {
+                nodes = triangleNode.incomingNodes;
+            }
+        }
+    }
+}
+
 
 main();
