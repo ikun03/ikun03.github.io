@@ -1,6 +1,7 @@
 class JointNode {
     constructor() {
         this.offsets = [];
+        this.name = "";
         this.channelHeads = [];
         this.channelValues = [];
         this.isEndSite = false;
@@ -12,6 +13,54 @@ class JointNode {
 class Hierarchy {
     constructor() {
         this.root = null;
+    }
+}
+
+function processMotion(bvhArray, indexToProcess) {
+    let index = indexToProcess;
+    while (index < bvhArray.length()) {
+        //Let us then add it a RootNode and process it
+        if (bvhArray[index] === "ROOT" || bvhArray[index] === "JOINT") {
+            index++;
+            let jointNode = new JointNode();
+            jointNode.name = bvhArray[index];
+
+            index++;
+            while (bvhArray[index] !== "OFFSET") {
+                index++;
+            }
+
+            for (let i = 0; i < 3; i++) {
+                index++;
+                jointNode.offsets.push(parseInt(bvhArray[index]));
+            }
+
+            index++;
+            while (bvhArray[index] !== "CHANNELS") {
+                index++;
+            }
+
+            index++;
+            let channelSize = parseInt(bvhArray[index]);
+            for (let i = 0; i < channelSize; i++) {
+                index++;
+                jointNode.channelHeads.push(parseInt(bvhArray[index]));
+            }
+
+            index++;
+            while (bvhArray[index] !== "}") {
+                if (bvhArray[index] === "JOINT") {
+                    let resultArray = processMotion(bvhArray, index);
+                    index = resultArray[0];
+                    jointNode.children.push(resultArray[1]);
+                } else {
+                    index++;
+                }
+            }
+
+            return [index + 1, jointNode];
+        }
+        index++;
     }
 }
 
@@ -102,6 +151,16 @@ function main() {
         .replace(/\n/g, "??")
         .replace(/\s/g, "??")
         .split(/[?]+/g);
+    let stringIndex = 0;
+    //First let us create a hierarchy object
+    let hierarchy = new Hierarchy();
+    while (stringIndex < bvhTabArray.length) {
+        if (bvhTabArray[stringIndex] === "HIERARCHY") {
+            let resultArray = processMotion(bvhTabArray, stringIndex + 1);
+            stringIndex = resultArray[0];
+            hierarchy.root = resultArray[1];
+        }
+    }
 
     var helper = new THREE.SkeletonHelper(bones[0]);
     helper.material.linewidth = 5;
