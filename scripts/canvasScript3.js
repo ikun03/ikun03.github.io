@@ -18,7 +18,7 @@ class Hierarchy {
 
 function processMotion(bvhArray, indexToProcess) {
     let index = indexToProcess;
-    while (index < bvhArray.length()) {
+    while (index < bvhArray.length) {
         //Let us then add it a RootNode and process it
         if (bvhArray[index] === "ROOT" || bvhArray[index] === "JOINT") {
             index++;
@@ -32,7 +32,7 @@ function processMotion(bvhArray, indexToProcess) {
 
             for (let i = 0; i < 3; i++) {
                 index++;
-                jointNode.offsets.push(parseInt(bvhArray[index]));
+                jointNode.offsets.push(parseFloat(bvhArray[index]));
             }
 
             index++;
@@ -41,10 +41,10 @@ function processMotion(bvhArray, indexToProcess) {
             }
 
             index++;
-            let channelSize = parseInt(bvhArray[index]);
+            let channelSize = parseFloat(bvhArray[index]);
             for (let i = 0; i < channelSize; i++) {
                 index++;
-                jointNode.channelHeads.push(parseInt(bvhArray[index]));
+                jointNode.channelHeads.push(parseFloat(bvhArray[index]));
             }
 
             index++;
@@ -60,7 +60,7 @@ function processMotion(bvhArray, indexToProcess) {
                     }
                     for (let i = 0; i < 3; i++) {
                         index++;
-                        jointNode.endSiteLength.push(parseInt(bvhArray[index]));
+                        jointNode.endSiteLength.push(parseFloat(bvhArray[index]));
                     }
                     while (bvhArray[index] !== "}") {
                         index++;
