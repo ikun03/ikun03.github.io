@@ -53,6 +53,19 @@ function processMotion(bvhArray, indexToProcess) {
                     let resultArray = processMotion(bvhArray, index);
                     index = resultArray[0];
                     jointNode.children.push(resultArray[1]);
+                } else if (bvhArray[index] === "End" && bvhArray[index + 1] === "Site") {
+                    jointNode.isEndSite = true;
+                    while (bvhArray[index] !== "OFFSET") {
+                        index++;
+                    }
+                    for (let i = 0; i < 3; i++) {
+                        index++;
+                        jointNode.endSiteLength.push(parseInt(bvhArray[index]));
+                    }
+                    while (bvhArray[index] !== "}") {
+                        index++;
+                    }
+                    index++;
                 } else {
                     index++;
                 }
@@ -159,6 +172,10 @@ function main() {
             let resultArray = processMotion(bvhTabArray, stringIndex + 1);
             stringIndex = resultArray[0];
             hierarchy.root = resultArray[1];
+        } else if (bvhTabArray[stringIndex] === "MOTION") {
+            break;
+        } else {
+            stringIndex++;
         }
     }
 
