@@ -1,4 +1,4 @@
-import {bvh1} from "../framework/BvhFiles/bvh1.js";
+import {bvh} from "../framework/BvhFiles/bvh2.js";
 
 function degToRad(number) {
     return number * Math.PI / 180;
@@ -122,9 +122,9 @@ function main() {
     renderer.setSize(width, height);
     document.body.appendChild(renderer.domElement);
 
-    camera.position.z = 150;
+    camera.position.z = 100;
     camera.position.x = 0;
-    camera.position.y = 150;
+    camera.position.y = 25;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 
@@ -192,13 +192,13 @@ function main() {
 
 
     //Let us process the file
-    let bvhTabArray = bvh1.replace(/\t|\n|\s/g, "??")
+    let bvhTabArray = bvh.replace(/\t|\n|\s/g, "??")
     //.replace(/\n/g, "??")
     //.replace(/\s/g, "??")
         .split(/[?]+/g);
     let stringIndex = 0;
     //First let us create a hierarchy object
-    let hierarchy = new Hierarchy();
+    var hierarchy = new Hierarchy();
     while (stringIndex < bvhTabArray.length) {
         if (bvhTabArray[stringIndex] === "HIERARCHY") {
             let resultArray = processMotion(bvhTabArray, stringIndex + 1);
@@ -243,13 +243,13 @@ function main() {
 
     let then = 0;
     let calcTime = 0;
+    let isChangeFrame = true;
 
     function animate(now) {
         now *= 0.001;  // make it seconds
         const delta = now - then;
         then = now;
-        calcTime += delta;
-        if (calcTime >= frameTime) {
+        if (isChangeFrame) {
             bones[0].position.x = parseFloat(bvhTabArray[stringIndex]);
             stringIndex++;
             bones[0].position.y = parseFloat(bvhTabArray[stringIndex]);
@@ -262,17 +262,25 @@ function main() {
                 //     degToRad(parseFloat(bvhTabArray[stringIndex + 1])),
                 //     degToRad(parseFloat(bvhTabArray[stringIndex + 2])), 'ZXY');
                 // bones[counter].setRotationFromEuler(euler);
-                bones[counter].rotateZ(degToRad(parseFloat(bvhTabArray[stringIndex])));
-                bones[counter].rotateX(degToRad(parseFloat(bvhTabArray[stringIndex + 1])));
-                bones[counter].rotateY(degToRad(parseFloat(bvhTabArray[stringIndex + 2])));
+                let euler = new THREE.Euler(degToRad(parseFloat(bvhTabArray[stringIndex + 1])),
+                    degToRad(parseFloat(bvhTabArray[stringIndex + 2])),
+                    degToRad(parseFloat(bvhTabArray[stringIndex])), 'ZXY');
+                bones[counter].setRotationFromEuler(euler);
                 stringIndex += 3;
                 counter++;
             }
             if (stringIndex === bvhTabArray.length - 1) {
                 stringIndex = startIndex;
             }
-            calcTime = 0;
+            isChangeFrame = false;
+        } else {
+            calcTime += delta;
+            if (calcTime >= frameTime) {
+                calcTime = 0;
+                isChangeFrame = true;
+            }
         }
+        camera.lookAt(new THREE.Vector3(bones[0].position.x, bones[0].position.y, bones[0].position.z));
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
