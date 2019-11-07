@@ -1,4 +1,4 @@
-export const bvh1 = "HIERARCHY\n" +
+export var bvh1 = "HIERARCHY\n" +
     "ROOT Hips\n" +
     "{\n" +
     "\tOFFSET\t0.000000\t0.000000\t0.000000\n" +

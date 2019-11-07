@@ -1,4 +1,8 @@
-import {bvh1} from "../framework/BvhFiles/bvh1";
+import {bvh1} from "../framework/BvhFiles/bvh1.js";
+
+function degToRad(number) {
+    return number * Math.PI / 180;
+}
 
 class JointNode {
     constructor() {
@@ -47,7 +51,7 @@ function processMotion(bvhArray, indexToProcess) {
             let channelSize = parseFloat(bvhArray[index]);
             for (let i = 0; i < channelSize; i++) {
                 index++;
-                jointNode.channelHeads.push(parseFloat(bvhArray[index]));
+                jointNode.channelHeads.push(bvhArray[index]);
             }
 
             index++;
@@ -212,6 +216,22 @@ function main() {
     let boneIndex = 0;
     boneIndex = processHierarchyToBoneArray(hierarchy.root, boneIndex, bones, null);
 
+    while (bvhTabArray[stringIndex] !== "Frames:") {
+        stringIndex++;
+    }
+    stringIndex++;
+    let noOfFrames = parseInt(bvhTabArray[stringIndex]);
+
+    stringIndex++;
+    while (bvhTabArray[stringIndex] !== "Time:") {
+        stringIndex++;
+    }
+
+    stringIndex++;
+    let frameTime = parseFloat(bvhTabArray[stringIndex]);
+    stringIndex++;
+    const startIndex = stringIndex;
+    let totalValuesInLine = 6 + boneIndex * 3;
 
     var helper = new THREE.SkeletonHelper(bones[0]);
     helper.material.linewidth = 5;
@@ -219,17 +239,45 @@ function main() {
     var boneContainer = new THREE.Group();
     boneContainer.add(bones[0]);
     scene.add(boneContainer);
-
     scene.add(helper);
 
+    let then = 0;
+    let calcTime = 0;
 
-    var animate = function () {
+    function animate(now) {
+        now *= 0.001;  // make it seconds
+        const delta = now - then;
+        then = now;
+        calcTime += delta;
+        if (calcTime >= frameTime) {
+            bones[0].position.x = parseFloat(bvhTabArray[stringIndex]);
+            stringIndex++;
+            bones[0].position.y = parseFloat(bvhTabArray[stringIndex]);
+            stringIndex++;
+            bones[0].position.z = parseFloat(bvhTabArray[stringIndex]);
+            stringIndex++;
+            let counter = 0;
+            while (counter < bones.length) {
+                // let euler = new THREE.Euler(degToRad(parseFloat(bvhTabArray[stringIndex])),
+                //     degToRad(parseFloat(bvhTabArray[stringIndex + 1])),
+                //     degToRad(parseFloat(bvhTabArray[stringIndex + 2])), 'ZXY');
+                // bones[counter].setRotationFromEuler(euler);
+                bones[counter].rotateZ(degToRad(parseFloat(bvhTabArray[stringIndex])));
+                bones[counter].rotateX(degToRad(parseFloat(bvhTabArray[stringIndex + 1])));
+                bones[counter].rotateY(degToRad(parseFloat(bvhTabArray[stringIndex + 2])));
+                stringIndex += 3;
+                counter++;
+            }
+            if (stringIndex === bvhTabArray.length - 1) {
+                stringIndex = startIndex;
+            }
+            calcTime = 0;
+        }
         requestAnimationFrame(animate);
-
         renderer.render(scene, camera);
-    };
+    }
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 
