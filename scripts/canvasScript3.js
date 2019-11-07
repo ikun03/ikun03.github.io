@@ -113,8 +113,8 @@ function processHierarchyToBoneArray(jointNode, boneIndex, bones, parentBone) {
 }
 
 function main() {
-    let width = 500;
-    let height = 500;
+    let width = 800;
+    let height = 800;
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(75, width / height, 0.1, -1000);
 
