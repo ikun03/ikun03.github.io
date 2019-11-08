@@ -236,10 +236,17 @@ function main() {
     const startIndex = stringIndex;
     let totalValuesInLine = 6 + boneIndex * 3;
 
+    //Code for slider for controlling the animation
     slider.min = 1;
     slider.max = Math.ceil((bvhTabArray.length - 2 - startIndex) / totalValuesInLine);
     slider.value = 1;
     let sliderCounter = 0;
+    slider.oninput = function () {
+        let seekVal = parseInt(this.value);
+        sliderCounter = seekVal;
+        stringIndex = (seekVal * totalValuesInLine) + startIndex;
+    };
+
 
     var helper = new THREE.SkeletonHelper(bones[0]);
     helper.material.linewidth = 5;
