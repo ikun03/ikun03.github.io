@@ -251,11 +251,16 @@ function main() {
 
     frameRateIncrease.addEventListener("click", function () {
         frameTime *= 2;
+        frameText.innerText = frameTime;
     });
 
     frameRateDecrease.addEventListener("click", function () {
         frameTime /= 2;
+        frameText.innerText = frameTime;
     });
+
+    let frameText = document.getElementById("frameText");
+    frameText.innerText = frameTime;
 
     var helper = new THREE.SkeletonHelper(bones[0]);
     helper.material.linewidth = 5;
