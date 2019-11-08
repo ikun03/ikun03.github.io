@@ -115,6 +115,8 @@ function processHierarchyToBoneArray(jointNode, boneIndex, bones, parentBone) {
 function main() {
 
     var slider = document.getElementById("myRange");
+    var frameRateIncrease = document.getElementById("plusBtn");
+    var frameRateDecrease = document.getElementById("minusBtn");
 
     let width = 800;
     let height = 800;
@@ -247,6 +249,13 @@ function main() {
         stringIndex = (seekVal * totalValuesInLine) + startIndex;
     };
 
+    frameRateIncrease.addEventListener("click", function () {
+        frameTime *= 2;
+    });
+
+    frameRateDecrease.addEventListener("click", function () {
+        frameTime /= 2;
+    });
 
     var helper = new THREE.SkeletonHelper(bones[0]);
     helper.material.linewidth = 5;
@@ -296,7 +305,6 @@ function main() {
                 isChangeFrame = true;
                 sliderCounter += 1;
                 slider.value = sliderCounter;
-                console.log(slider.value);
             }
         }
         camera.lookAt(new THREE.Vector3(bones[0].position.x, bones[0].position.y, bones[0].position.z));
