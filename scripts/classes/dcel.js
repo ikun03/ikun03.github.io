@@ -92,6 +92,12 @@ class DCEL {
         let face2 = new Face();
         let face3 = new Face();
 
+        //Add the new edges as leaving edges to the vertices
+        vertices[0].leavingHalfEdges.push(halfEdge1);
+        vertices[1].leavingHalfEdges.push(halfEdge3);
+        vertices[2].leavingHalfEdges.push(halfEdge5);
+        vertex.leavingHalfEdges = [halfEdge2, halfEdge4, halfEdge6];
+
         face1.faceName = vertex.vertexName + vertices[0].vertexName + vertices[1].vertexName;
         face1.edge = halfEdge2;
 
@@ -161,7 +167,7 @@ class Vertex {
         this.vertexName = name;
         this.xCoordinate = 0;
         this.yCoordinate = 0;
-        this.leavingHalfEdge = [];
+        this.leavingHalfEdges = [];
     }
 }
 
