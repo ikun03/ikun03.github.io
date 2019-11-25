@@ -1,7 +1,7 @@
 /**
  * The following is a javascript implementation of the Doubly Connected Edge List data structure by me: Kunal Shitut
  */
-class DCEL {
+export class DCEL {
     constructor(initialVertices, initialHalfEdges, initialFaces) {
         this.vertices = new Map();
         this.faces = new Map();
@@ -18,11 +18,24 @@ class DCEL {
         }
     }
 
+    isPointInsideTriangleFace(face, point) {
+
+        let A = face.edge.originVertex;
+        let C = face.edge.targetVertex;
+        let B = face.edge.nextHalfEdge.targetVertex;
+
+        let denominator = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
+        let w1 = (A.x * (C.z - A.z) + (point.z - A.z) * (C.x - A.x) - point.x * (C.z - A.z)) /
+            denominator;
+        let w2 = (point.z - A.z - w1 * (B.z - A.z)) / (C.z - A.z);
+        return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
+    }
+
     addVertex(vertex) {
         //Find the face where the vertex is inserted
         let vertexFace = new Face();
         for (let [key, value] of this.faces) {
-            if (isPointInsideTriangle(value, vertex)) {
+            if (this.isPointInsideTriangleFace(value, vertex)) {
                 vertexFace = value;
                 break;
             }
@@ -104,7 +117,7 @@ class DCEL {
         face2.faceName = vertex.vertexName + vertices[1].vertexName + vertices[2].vertexName;
         face2.edge = halfEdge4;
 
-        face3.faceName = vertex.vertexName + vertex[2].vertexName + vertices[0].vertexName;
+        face3.faceName = vertex.vertexName + vertices[2].vertexName + vertices[0].vertexName;
         face3.edge = halfEdge6;
 
         halfEdge2.leftSideFace = face1;
@@ -135,43 +148,27 @@ class DCEL {
 
     }
 
-    isPointInsideTriangleFace(triangleNodes, point) {
-        if (triangleNodes.length !== 3) {
-            throw "This method only works for trianglular faces";
-        }
-        let A = triangleNodes[0];
-        let C = triangleNodes[1];
-        let B = triangleNodes[2];
+    flipEdges(oldFace, flipPoint) {
+        //Get the edge of the face whose twin's, next edge's target is the flip point.
+        //We also get the point on the face which will be starting point for the triangle
+        //Now for each edge the
 
-        let w1 = (A.x * (C.y - A.y) + (point.y - A.y) * (C.x - A.x) - point.x * (C.y - A.y)) /
-            ((B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y));
-        let w2 = (point.y - A.y - w1 * (B.y - A.y)) / (C.y - A.y);
-        return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
-    }
-
-    flipEdges(oldHalfEdge, newHalfEdge) {
-        //Find the twin half edge and the faces of the half edge
-        //Now find the vertices of the new Half Edge
-        //Check if they are in the same faces as the original half edges
-        //Add their edges
-        //Remove old edges
-        //Split faces
-        //Update graph accordingly
     }
 
 }
 
 //TODO: A lot of the data structures are just silly redundant so remove once done
-class Vertex {
-    constructor(name, x, y) {
+export class Vertex {
+    constructor(name, x, y, z) {
         this.vertexName = name;
-        this.xCoordinate = 0;
-        this.yCoordinate = 0;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.leavingHalfEdges = [];
     }
 }
 
-class HalfEdge {
+export class HalfEdge {
     constructor() {
         this.edgeName = null;
         this.originVertex = null;
@@ -183,7 +180,7 @@ class HalfEdge {
     }
 }
 
-class Face {
+export class Face {
     constructor() {
         this.faceName = null;
         this.edge = null;

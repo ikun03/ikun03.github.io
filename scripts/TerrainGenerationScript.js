@@ -1,9 +1,57 @@
+import {Vertex, HalfEdge, Face, DCEL} from "./classes/dcel.js";
+
 let scene;
 
 function drawTriangle(point1, point2, point3) {
     scene.add(getLine(point1.pointPositionVector, point2.pointPositionVector));
     scene.add(getLine(point2.pointPositionVector, point3.pointPositionVector));
     scene.add(getLine(point3.pointPositionVector, point1.pointPositionVector));
+}
+
+function initializeDCEL(point1, point2, point3) {
+    let vertex1 = new Vertex("A", point1.x, point1.y, point1.z);
+    let vertex2 = new Vertex("B", point2.x, point2.y, point2.z);
+    let vertex3 = new Vertex("C", point3.x, point3.y, point3.z);
+
+    let halfedge1 = new HalfEdge();
+    let halfedge2 = new HalfEdge();
+    let halfedge3 = new HalfEdge();
+
+    halfedge1.edgeName = "AB";
+    halfedge1.originVertex = vertex1;
+    halfedge1.targetVertex = vertex2;
+    halfedge1.nextHalfEdge = halfedge2;
+    halfedge1.previousHalfEdge = halfedge3;
+
+    halfedge2.edgeName = "BC";
+    halfedge2.originVertex = vertex2;
+    halfedge2.targetVertex = vertex3;
+    halfedge2.nextHalfEdge = halfedge3;
+    halfedge2.previousHalfEdge = halfedge1;
+
+    halfedge3.edgeName = "CA";
+    halfedge3.originVertex = vertex3;
+    halfedge3.targetVertex = vertex1;
+    halfedge3.nextHalfEdge = halfedge1;
+    halfedge3.previousHalfEdge = halfedge2;
+
+    let face = new Face();
+    face.faceName = "ABC";
+    face.edge = halfedge1;
+
+    halfedge1.leftSideFace = face;
+    halfedge2.leftSideFace = face;
+    halfedge3.leftSideFace = face;
+
+    vertex1.leavingHalfEdges.push(halfedge1);
+    vertex2.leavingHalfEdges.push(halfedge2);
+    vertex3.leavingHalfEdges.push(halfedge3);
+
+    return new DCEL([vertex1, vertex2, vertex3], [halfedge1, halfedge2, halfedge3], [face]);
+}
+
+function getVertex(point) {
+    return new Vertex("D", point.x, point.y, point.z);
 }
 
 function main() {
@@ -41,12 +89,13 @@ function main() {
     let point2 = new Point(0, 0, 3 * absoluteMax);
     let point3 = new Point(-3 * absoluteMax, 0, -3 * absoluteMax);
     let pointList = [point1, point2, point3];
-    drawTriangle(point1, point2, point3);
+    //drawTriangle(point1, point2, point3);
 
     // We have created the Delaunay tree here and initialized it with
     // the root node
-    let root = new Node(pointList);
-    let tree = new DelaunayTree(root);
+    // let root = new Node(pointList);
+    // let tree = new DelaunayTree(root);
+    // addPointToTree(tree, points.pop());
 
     // Add the points to the scene
     // for (let i = 0; i < points.length; i++) {
@@ -54,8 +103,19 @@ function main() {
     // }
 
     // We add the points to the triangulation one by one
-    addPointToTree(tree, points.pop());
+    let dcel = initializeDCEL(point1, point2, point3);
+    dcel.addVertex(getVertex(points.pop()));
 
+    for (let [key, value] of dcel.faces) {
+        let vertexA = value.edge.originVertex;
+        let vertexB = value.edge.targetVertex;
+        let vertexC = value.edge.nextHalfEdge.targetVertex;
+
+        drawTriangle(new Point(vertexA.x, vertexA.y, vertexA.z),
+            new Point(vertexB.x, vertexB.y, vertexB.z),
+            new Point(vertexC.x, vertexC.y, vertexC.z));
+
+    }
     camera.position.x = 0;
     camera.position.z = 35;
     camera.position.y = 35;
@@ -139,6 +199,7 @@ function addPointToTree(tree, point) {
         if (isPointInsideTriangle(triangleNode, point)) {
             if (!triangleNode.isOld) {
 
+                isPointAdded = true;
             } else {
                 nodes = triangleNode.incomingNodes;
             }
