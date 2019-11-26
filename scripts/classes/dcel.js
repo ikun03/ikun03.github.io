@@ -28,17 +28,20 @@ export class DCEL {
         let w1 = (A.x * (C.z - A.z) + (point.z - A.z) * (C.x - A.x) - point.x * (C.z - A.z)) /
             denominator;
         let w2 = (point.z - A.z - w1 * (B.z - A.z)) / (C.z - A.z);
-        return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
+        return w1 > 0 && w2 > 0 && (w1 + w2) < 1;
     }
 
     addVertex(vertex) {
         //Find the face where the vertex is inserted
-        let vertexFace = new Face();
+        let vertexFace;
         for (let [key, value] of this.faces) {
             if (this.isPointInsideTriangleFace(value, vertex)) {
                 vertexFace = value;
                 break;
             }
+        }
+        if (vertexFace == null) {
+            return;
         }
         //Create and add the new halfedges to the list
         let edges = [vertexFace.edge, vertexFace.edge.nextHalfEdge, vertexFace.edge.previousHalfEdge];
@@ -132,6 +135,15 @@ export class DCEL {
         edges[2].leftSideFace = face3;
         halfEdge1.leftSideFace = face3;
 
+        edges[0].previousHalfEdge = halfEdge2;
+        edges[0].nextHalfEdge = halfEdge3;
+
+        edges[1].previousHalfEdge = halfEdge4;
+        edges[1].nextHalfEdge = halfEdge5;
+
+        edges[2].previousHalfEdge = halfEdge6;
+        edges[2].nextHalfEdge = halfEdge1;
+
         this.vertices.set(vertex.vertexName, vertex);
 
         this.faces.delete(vertexFace.faceName);
@@ -146,15 +158,25 @@ export class DCEL {
         this.halfedges.set(halfEdge5.edgeName, halfEdge5);
         this.halfedges.set(halfEdge6.edgeName, halfEdge6);
 
+        //Once the vertex has been added and the new faces have been formed
+        //We must verify that each new face is valid
+        this.verifyEdges(edges);
+
     }
 
-    flipEdges(oldFace, flipPoint) {
+    flipEdges(oldFaceObject, flipPoint) {
         //Get the edge of the face whose twin's, next edge's target is the flip point.
-        let oldEdge = oldFace.edge;
+        let oldEdge = this.halfedges.get(oldFaceObject.edge.edgeName);
+        if (oldEdge == null) {
+            console.log("This edge was null which is strange!");
+            return;
+        }
+        let oldFace = oldEdge.leftSideFace;
         let oldTwin;
-        while (true) {
+        let counter = 0;
+        while (counter < 4) {
             if (oldEdge.twin == null) {
-                break;
+                return;
             }
             oldTwin = oldEdge.twin;
             let flipVert = oldTwin.nextHalfEdge.targetVertex;
@@ -162,7 +184,14 @@ export class DCEL {
                 break;
             }
             oldEdge = oldEdge.nextHalfEdge;
+            counter++;
         }
+        if (counter === 4) {
+            console.log("Counter reached 4. Something is wrong");
+            return;
+        }
+
+        let twinOldFace = oldTwin.leftSideFace;
 
         //We get the new and the old vertex objects
         let newStartVert = this.vertices.get(oldEdge.nextHalfEdge.targetVertex.vertexName);
@@ -204,28 +233,34 @@ export class DCEL {
 
         //Now for each edge that points to the old half edges, it's next edge is the edge from the older second triangle
         //For each edge that points to the points of the new edges it's next edge is now the new edge
-        oldEdge.nextHalfEdge.previousHalfEdge = oldTwin.previousHalfEdge;
-        oldEdge.nextHalfEdge.nextHalfEdge = halfEdge1;
-        oldEdge.nextHalfEdge.leftSideFace = face1;
+        let edge1 = this.halfedges.get(oldEdge.nextHalfEdge.edgeName);
+        let edge2 = this.halfedges.get(oldEdge.nextHalfEdge.nextHalfEdge.edgeName);
+        let edge3 = this.halfedges.get(oldTwin.nextHalfEdge.edgeName);
+        let edge4 = this.halfedges.get(oldTwin.nextHalfEdge.nextHalfEdge.edgeName);
 
-        oldEdge.nextHalfEdge.nextHalfEdge.previousHalfEdge = halfEdge2;
-        oldEdge.nextHalfEdge.nextHalfEdge.nextHalfEdge = oldTwin.nextHalfEdge;
-        oldEdge.nextHalfEdge.nextHalfEdge.leftSideFace = face2;
+        edge1.previousHalfEdge = oldTwin.previousHalfEdge;
+        edge1.nextHalfEdge = halfEdge1;
+        edge1.leftSideFace = face1;
 
 
-        oldTwin.nextHalfEdge.previousHalfEdge = oldEdge.previousHalfEdge;
-        oldTwin.nextHalfEdge.nextHalfEdge = halfEdge2;
-        oldTwin.nextHalfEdge.leftSideFace = face2;
+        edge2.previousHalfEdge = halfEdge2;
+        edge2.nextHalfEdge = oldTwin.nextHalfEdge;
+        edge2.leftSideFace = face2;
 
-        oldTwin.nextHalfEdge.nextHalfEdge.previousHalfEdge = halfEdge1;
-        oldTwin.nextHalfEdge.nextHalfEdge.nextHalfEdge = oldEdge.nextHalfEdge;
-        oldTwin.nextHalfEdge.nextHalfEdge.leftSideFace = face1;
+        edge3.previousHalfEdge = oldEdge.previousHalfEdge;
+        edge3.nextHalfEdge = halfEdge2;
+        edge3.leftSideFace = face2;
+
+        edge4.previousHalfEdge = halfEdge1;
+        edge4.nextHalfEdge = oldEdge.nextHalfEdge;
+        edge4.leftSideFace = face1;
 
         //For each old Vertex just delete the old edges
         for (let i = 0; i < oldStartVert.leavingHalfEdges.length; i++) {
             let edge = oldStartVert.leavingHalfEdges[i];
             if (edge.edgeName === oldEdge.edgeName) {
                 oldStartVert.leavingHalfEdges.splice(i, 1);
+                break;
             }
         }
 
@@ -233,6 +268,7 @@ export class DCEL {
             let edge = oldEndVert.leavingHalfEdges[i];
             if (edge.edgeName === oldTwin.edgeName) {
                 oldEndVert.leavingHalfEdges.splice(i, 1);
+                break;
             }
         }
         //For the new vertices just add the new edges
@@ -240,19 +276,44 @@ export class DCEL {
         newEndVert.leavingHalfEdges.push(halfEdge2);
 
         //Delete the old edges and the old face and add the new edges and the faces
-        this.halfedges.delete(oldEdge.edgeName);
-        this.halfedges.delete(oldTwin.edgeName);
-
         this.halfedges.set(halfEdge1.edgeName, halfEdge1);
         this.halfedges.set(halfEdge2.edgeName, halfEdge2);
-
-        this.faces.delete(oldFace.faceName);
         this.faces.set(face1.faceName, face1);
         this.faces.set(face2.faceName, face2);
 
+        this.halfedges.delete(oldEdge.edgeName);
+        this.halfedges.delete(oldTwin.edgeName);
+
+        this.faces.delete(oldFace.faceName);
+        this.faces.delete(twinOldFace.faceName);
+
+        //Once we flip edges and create new faces, we must ensure that they are valid faces
+        this.verifyEdges([edge1, edge2, edge3, edge4]);
 
     }
 
+    verifyEdges(oldEdgesList) {
+        for (let i = 0; i < oldEdgesList.length; i++) {
+            let edge = this.halfedges.get(oldEdgesList[i].edgeName);
+            if (edge == null || edge.twin == null) {
+                continue;
+            }
+            let pointA = edge.nextHalfEdge.targetVertex;
+            let pointB = edge.originVertex;
+            let pointC = edge.targetVertex;
+            let pointD = edge.twin.nextHalfEdge.targetVertex;
+
+            let m = new THREE.Matrix4();
+            m.set(pointA.x, pointA.z, Math.pow(pointA.x, 2) + Math.pow(pointA.z, 2), 1,
+                pointB.x, pointB.z, Math.pow(pointB.x, 2) + Math.pow(pointB.z, 2), 1,
+                pointC.x, pointC.z, Math.pow(pointC.x, 2) + Math.pow(pointC.z, 2), 1,
+                pointD.x, pointD.z, Math.pow(pointD.x, 2) + Math.pow(pointD.z, 2), 1);
+            let det = m.determinant();
+            if (det > 0) {
+                this.flipEdges(edge.leftSideFace, pointD);
+            }
+        }
+    }
 }
 
 //TODO: A lot of the data structures are just silly redundant so remove once done

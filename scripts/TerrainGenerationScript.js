@@ -68,7 +68,7 @@ function main() {
     //My range for x can be between -3 to 3 and along z it is between 2 to -5
     let points = [];
     for (let i = 0; i < 100; i++) {
-        points.push(new Point(getRandomArbitrary(-5, 5), 0, getRandomArbitrary(-5, 5)));
+        points.push(new Point(getRandomArbitrary(-100, 100), 0, getRandomArbitrary(-100, 100)));
     }
 
     //Let us create the Super triangle first
@@ -98,39 +98,56 @@ function main() {
     // addPointToTree(tree, points.pop());
 
     // Add the points to the scene
-    // for (let i = 0; i < points.length; i++) {
-    //     scene.add(points[i].pointObject);
-    // }
+    for (let i = 0; i < points.length; i++) {
+        scene.add(points[i].pointObject);
+    }
 
     // We add the points to the triangulation one by one
     let dcel = initializeDCEL(point1, point2, point3);
     let pointCounter = 0;
-    while (points.length !== 0) {
-        dcel.addVertex(getVertex(points.pop(), pointCounter++));
-    }
 
-
-    for (let [key, value] of dcel.faces) {
-        let vertexA = value.edge.originVertex;
-        let vertexB = value.edge.targetVertex;
-        let vertexC = value.edge.nextHalfEdge.targetVertex;
-
-        drawTriangle(new Point(vertexA.x, vertexA.y, vertexA.z),
-            new Point(vertexB.x, vertexB.y, vertexB.z),
-            new Point(vertexC.x, vertexC.y, vertexC.z));
-
-    }
     camera.position.x = 0;
-    camera.position.z = 10;
-    camera.position.y = 10;
+    camera.position.z = 100;
+    camera.position.y = 100;
     camera.lookAt(new THREE.Vector3(0, -1, -1));
 
-    let animate = function () {
+    let then = 0;
+    let time = 0;
+
+    function animate(now) {
+
+        now *= 0.001;  // make it seconds
+
+        const delta = now - then;
+        then = now;
+        time += delta;
+
+        if (time > 1 && points.length !== 0) {
+            while (scene.children.length > 0) {
+                scene.remove(scene.children[0]);
+            }
+            for (let i = 0; i < points.length; i++) {
+                scene.add(points[i].pointObject);
+            }
+
+            dcel.addVertex(getVertex(points.pop(), pointCounter++));
+            for (let [key, value] of dcel.faces) {
+                let vertexA = value.edge.originVertex;
+                let vertexB = value.edge.targetVertex;
+                let vertexC = value.edge.nextHalfEdge.targetVertex;
+
+                drawTriangle(new Point(vertexA.x, vertexA.y, vertexA.z),
+                    new Point(vertexB.x, vertexB.y, vertexB.z),
+                    new Point(vertexC.x, vertexC.y, vertexC.z));
+
+            }
+            time = 0;
+        }
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
-    };
+    }
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 function getLine(pointA, pointB, color = 0xffffff) {
@@ -202,7 +219,6 @@ function addPointToTree(tree, point) {
         let triangleNode = nodes.pop();
         if (isPointInsideTriangle(triangleNode, point)) {
             if (!triangleNode.isOld) {
-
                 isPointAdded = true;
             } else {
                 nodes = triangleNode.incomingNodes;
