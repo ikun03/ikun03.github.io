@@ -50,8 +50,8 @@ function initializeDCEL(point1, point2, point3) {
     return new DCEL([vertex1, vertex2, vertex3], [halfedge1, halfedge2, halfedge3], [face]);
 }
 
-function getVertex(point) {
-    return new Vertex("D", point.x, point.y, point.z);
+function getVertex(point, pointCounter) {
+    return new Vertex("P" + pointCounter, point.x, point.y, point.z);
 }
 
 function main() {
@@ -104,7 +104,11 @@ function main() {
 
     // We add the points to the triangulation one by one
     let dcel = initializeDCEL(point1, point2, point3);
-    dcel.addVertex(getVertex(points.pop()));
+    let pointCounter = 0;
+    while (points.length !== 0) {
+        dcel.addVertex(getVertex(points.pop(), pointCounter++));
+    }
+
 
     for (let [key, value] of dcel.faces) {
         let vertexA = value.edge.originVertex;
@@ -117,8 +121,8 @@ function main() {
 
     }
     camera.position.x = 0;
-    camera.position.z = 35;
-    camera.position.y = 35;
+    camera.position.z = 10;
+    camera.position.y = 10;
     camera.lookAt(new THREE.Vector3(0, -1, -1));
 
     let animate = function () {

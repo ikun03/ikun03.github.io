@@ -150,8 +150,106 @@ export class DCEL {
 
     flipEdges(oldFace, flipPoint) {
         //Get the edge of the face whose twin's, next edge's target is the flip point.
-        //We also get the point on the face which will be starting point for the triangle
-        //Now for each edge the
+        let oldEdge = oldFace.edge;
+        let oldTwin;
+        while (true) {
+            if (oldEdge.twin == null) {
+                break;
+            }
+            oldTwin = oldEdge.twin;
+            let flipVert = oldTwin.nextHalfEdge.targetVertex;
+            if (flipVert.x === flipPoint.x && flipVert.z === flipPoint.z) {
+                break;
+            }
+            oldEdge = oldEdge.nextHalfEdge;
+        }
+
+        //We get the new and the old vertex objects
+        let newStartVert = this.vertices.get(oldEdge.nextHalfEdge.targetVertex.vertexName);
+        let newEndVert = this.vertices.get(flipPoint.vertexName);
+        let oldStartVert = this.vertices.get(oldEdge.originVertex.vertexName);
+        let oldEndVert = this.vertices.get(oldEdge.targetVertex.vertexName);
+
+        //Create the new halfedge objects and set their pointers to the correct half edges
+        let halfEdge1 = new HalfEdge();
+        let halfEdge2 = new HalfEdge();
+
+        halfEdge1.edgeName = newStartVert.vertexName + newEndVert.vertexName;
+        halfEdge1.originVertex = newStartVert;
+        halfEdge1.targetVertex = newEndVert;
+        halfEdge1.twin = halfEdge2;
+        halfEdge1.nextHalfEdge = oldTwin.nextHalfEdge.nextHalfEdge;
+        halfEdge1.previousHalfEdge = oldEdge.nextHalfEdge;
+
+        halfEdge2.edgeName = newEndVert.vertexName + newStartVert.vertexName;
+        halfEdge2.originVertex = newEndVert;
+        halfEdge2.targetVertex = newStartVert;
+        halfEdge2.twin = halfEdge1;
+        halfEdge2.nextHalfEdge = oldEdge.nextHalfEdge.nextHalfEdge;
+        halfEdge2.previousHalfEdge = oldTwin.nextHalfEdge;
+
+        //Create two new face objects and initialize them as needed
+        let face1 = new Face();
+        let face2 = new Face();
+
+        face1.faceName = oldEndVert.vertexName + newStartVert.vertexName + newEndVert.vertexName;
+        face1.edge = oldEdge.nextHalfEdge;
+
+        face2.faceName = oldStartVert.vertexName + newEndVert.vertexName + newStartVert.vertexName;
+        face2.edge = oldTwin.nextHalfEdge;
+
+        halfEdge1.leftSideFace = face1;
+        halfEdge2.leftSideFace = face2;
+
+
+        //Now for each edge that points to the old half edges, it's next edge is the edge from the older second triangle
+        //For each edge that points to the points of the new edges it's next edge is now the new edge
+        oldEdge.nextHalfEdge.previousHalfEdge = oldTwin.previousHalfEdge;
+        oldEdge.nextHalfEdge.nextHalfEdge = halfEdge1;
+        oldEdge.nextHalfEdge.leftSideFace = face1;
+
+        oldEdge.nextHalfEdge.nextHalfEdge.previousHalfEdge = halfEdge2;
+        oldEdge.nextHalfEdge.nextHalfEdge.nextHalfEdge = oldTwin.nextHalfEdge;
+        oldEdge.nextHalfEdge.nextHalfEdge.leftSideFace = face2;
+
+
+        oldTwin.nextHalfEdge.previousHalfEdge = oldEdge.previousHalfEdge;
+        oldTwin.nextHalfEdge.nextHalfEdge = halfEdge2;
+        oldTwin.nextHalfEdge.leftSideFace = face2;
+
+        oldTwin.nextHalfEdge.nextHalfEdge.previousHalfEdge = halfEdge1;
+        oldTwin.nextHalfEdge.nextHalfEdge.nextHalfEdge = oldEdge.nextHalfEdge;
+        oldTwin.nextHalfEdge.nextHalfEdge.leftSideFace = face1;
+
+        //For each old Vertex just delete the old edges
+        for (let i = 0; i < oldStartVert.leavingHalfEdges.length; i++) {
+            let edge = oldStartVert.leavingHalfEdges[i];
+            if (edge.edgeName === oldEdge.edgeName) {
+                oldStartVert.leavingHalfEdges.splice(i, 1);
+            }
+        }
+
+        for (let i = 0; i < oldEndVert.leavingHalfEdges.length; i++) {
+            let edge = oldEndVert.leavingHalfEdges[i];
+            if (edge.edgeName === oldTwin.edgeName) {
+                oldEndVert.leavingHalfEdges.splice(i, 1);
+            }
+        }
+        //For the new vertices just add the new edges
+        newStartVert.leavingHalfEdges.push(halfEdge1);
+        newEndVert.leavingHalfEdges.push(halfEdge2);
+
+        //Delete the old edges and the old face and add the new edges and the faces
+        this.halfedges.delete(oldEdge.edgeName);
+        this.halfedges.delete(oldTwin.edgeName);
+
+        this.halfedges.set(halfEdge1.edgeName, halfEdge1);
+        this.halfedges.set(halfEdge2.edgeName, halfEdge2);
+
+        this.faces.delete(oldFace.faceName);
+        this.faces.set(face1.faceName, face1);
+        this.faces.set(face2.faceName, face2);
+
 
     }
 
