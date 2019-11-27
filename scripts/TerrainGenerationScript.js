@@ -54,6 +54,33 @@ function getVertex(point, pointCounter) {
     return new Vertex("P" + pointCounter, point.x, point.y, point.z);
 }
 
+function getTextGeometry(text, camera, position, scene) {
+    let textGeo;
+    let textObject;
+    let loader = new THREE.FontLoader();
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+        textGeo = new THREE.TextGeometry(text, {
+            font: font,
+            size: 80,
+            height: 5,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
+        let color = new THREE.Color();
+        color.setRGB(255, 250, 250);
+        let textMaterial = new THREE.MeshBasicMaterial({color: color});
+        textObject = new THREE.Mesh(textGeo, textMaterial);
+        textObject.position.set(position.x, position.y, position.z);
+        textObject.scale.set(0.04, 0.04, 0.04);
+        textObject.lookAt(camera.position);
+        scene.add(textObject);
+    });
+}
+
 function main() {
     scene = new THREE.Scene();
     let width = 600;
@@ -105,35 +132,11 @@ function main() {
     // We add the points to the triangulation one by one
     let dcel = initializeDCEL(point1, point2, point3);
     let pointCounter = 0;
-
-
-    var loader = new THREE.FontLoader();
-    let textGeo;
-    let text;
-    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        textGeo = new THREE.TextGeometry('Q1', {
-            font: font,
-            size: 80,
-            height: 5,
-            curveSegments: 12,
-            bevelEnabled: true,
-            bevelThickness: 10,
-            bevelSize: 8,
-            bevelOffset: 0,
-            bevelSegments: 5
-        });
-        let color = new THREE.Color();
-        color.setRGB(255, 250, 250);
-        let textMaterial = new THREE.MeshBasicMaterial({color: color});
-        text = new THREE.Mesh(textGeo, textMaterial);
-        text.position.set(0, 0, 0);
-        text.scale.set(0.04, 0.04, 0.04);
-        text.lookAt(camera.position);
-    });
-
+    let pointNames = [];
+    let counter = 0;
 
     camera.position.x = 100;
-    camera.position.z = 100;
+    camera.position.z = 0;
     camera.position.y = 100;
     camera.lookAt(0, 0, 0);
 
@@ -149,17 +152,19 @@ function main() {
         time += delta;
 
         if (time > 1 && points.length !== 0) {
+
             while (scene.children.length > 0) {
                 scene.remove(scene.children[0]);
             }
             for (let i = 0; i < points.length; i++) {
                 scene.add(points[i].pointObject);
-            }
-            if (text != null) {
-                scene.add(text);
+                getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
             }
 
-            dcel.addVertex(getVertex(points.pop(), pointCounter++));
+            let vertex = getVertex(points[counter], pointCounter++);
+            pointNames.push(vertex.vertexName);
+            dcel.addVertex(vertex);
+            counter++;
             for (let [key, value] of dcel.faces) {
                 let vertexA = value.edge.originVertex;
                 let vertexB = value.edge.targetVertex;
