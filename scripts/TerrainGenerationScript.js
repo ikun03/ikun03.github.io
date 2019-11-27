@@ -106,10 +106,36 @@ function main() {
     let dcel = initializeDCEL(point1, point2, point3);
     let pointCounter = 0;
 
-    camera.position.x = 0;
+
+    var loader = new THREE.FontLoader();
+    let textGeo;
+    let text;
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+        textGeo = new THREE.TextGeometry('Q1', {
+            font: font,
+            size: 80,
+            height: 5,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
+        let color = new THREE.Color();
+        color.setRGB(255, 250, 250);
+        let textMaterial = new THREE.MeshBasicMaterial({color: color});
+        text = new THREE.Mesh(textGeo, textMaterial);
+        text.position.set(0, 0, 0);
+        text.scale.set(0.04, 0.04, 0.04);
+        text.lookAt(camera.position);
+    });
+
+
+    camera.position.x = 100;
     camera.position.z = 100;
     camera.position.y = 100;
-    camera.lookAt(new THREE.Vector3(0, -1, -1));
+    camera.lookAt(0, 0, 0);
 
     let then = 0;
     let time = 0;
@@ -128,6 +154,9 @@ function main() {
             }
             for (let i = 0; i < points.length; i++) {
                 scene.add(points[i].pointObject);
+            }
+            if (text != null) {
+                scene.add(text);
             }
 
             dcel.addVertex(getVertex(points.pop(), pointCounter++));

@@ -146,7 +146,12 @@ export class DCEL {
 
         this.vertices.set(vertex.vertexName, vertex);
 
-        this.faces.delete(vertexFace.faceName);
+        //Don't delete the face instead mark it as old and then assign the
+        //vertex to its correct child.
+        //this.faces.delete(vertexFace.faceName);
+        vertexFace.isFaceOld = true;
+        vertexFace.childFaces.push(face1, face2, face3);
+
         this.faces.set(face1.faceName, face1);
         this.faces.set(face2.faceName, face2);
         this.faces.set(face3.faceName, face3);
@@ -275,17 +280,24 @@ export class DCEL {
         newStartVert.leavingHalfEdges.push(halfEdge1);
         newEndVert.leavingHalfEdges.push(halfEdge2);
 
-        //Delete the old edges and the old face and add the new edges and the faces
+        //Add the new edges and the faces to Datastucture maps
         this.halfedges.set(halfEdge1.edgeName, halfEdge1);
         this.halfedges.set(halfEdge2.edgeName, halfEdge2);
         this.faces.set(face1.faceName, face1);
         this.faces.set(face2.faceName, face2);
 
+        //Delete the old halfedges
         this.halfedges.delete(oldEdge.edgeName);
         this.halfedges.delete(oldTwin.edgeName);
 
-        this.faces.delete(oldFace.faceName);
-        this.faces.delete(twinOldFace.faceName);
+        //But don't delete the old faces, instead mark them as old and assign
+        //the point to one of their children
+        //this.faces.delete(oldFace.faceName);
+        //this.faces.delete(twinOldFace.faceName);
+        oldFace.isFaceOld = true;
+        twinOldFace.isFaceOld = true;
+        oldFace.childFaces.push(face1, face2);
+        twinOldFace.childFaces.push(face1, face2);
 
         //Once we flip edges and create new faces, we must ensure that they are valid faces
         this.verifyEdges([edge1, edge2, edge3, edge4]);
@@ -343,6 +355,8 @@ export class Face {
     constructor() {
         this.faceName = null;
         this.edge = null;
+        this.isFaceOld = false;
+        this.childFaces = [];
     }
 }
 
