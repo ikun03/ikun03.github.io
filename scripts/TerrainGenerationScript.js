@@ -36,7 +36,7 @@ function initializeDCEL(point1, point2, point3) {
     halfedge3.previousHalfEdge = halfedge2;
 
     let face = new Face();
-    face.faceName = "ABC";
+    face.faceName = "A,B,C";
     face.edge = halfedge1;
 
     halfedge1.leftSideFace = face;
@@ -135,9 +135,9 @@ function main() {
     let pointNames = [];
     let counter = 0;
 
-    camera.position.x = 100;
+    camera.position.x = 200;
     camera.position.z = 0;
-    camera.position.y = 100;
+    camera.position.y = 200;
     camera.lookAt(0, 0, 0);
 
     let then = 0;
@@ -151,14 +151,13 @@ function main() {
         then = now;
         time += delta;
 
-        if (time > 1 && points.length !== 0) {
-
+        if (time > 0.1 && counter < 100) {
             while (scene.children.length > 0) {
                 scene.remove(scene.children[0]);
             }
             for (let i = 0; i < points.length; i++) {
                 scene.add(points[i].pointObject);
-                getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
+                //getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
             }
 
             let vertex = getVertex(points[counter], pointCounter++);
@@ -166,6 +165,9 @@ function main() {
             dcel.addVertex(vertex);
             counter++;
             for (let [key, value] of dcel.faces) {
+                if (value.isFaceOld) {
+                    continue;
+                }
                 let vertexA = value.edge.originVertex;
                 let vertexB = value.edge.targetVertex;
                 let vertexC = value.edge.nextHalfEdge.targetVertex;

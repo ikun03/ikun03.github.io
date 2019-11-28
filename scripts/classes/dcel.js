@@ -16,13 +16,15 @@ export class DCEL {
         for (let i = 0; i < initialFaces.length; i++) {
             this.faces.set(initialFaces[i].faceName, initialFaces[i]);
         }
+
+        this.superFace = initialFaces[0];
     }
 
     isPointInsideTriangleFace(face, point) {
-
-        let A = face.edge.originVertex;
-        let C = face.edge.targetVertex;
-        let B = face.edge.nextHalfEdge.targetVertex;
+        let faceList = face.faceName.split(",");
+        let A = this.vertices.get(faceList[0]);
+        let C = this.vertices.get(faceList[1]);
+        let B = this.vertices.get(faceList[2]);
 
         let denominator = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
         let w1 = (A.x * (C.z - A.z) + (point.z - A.z) * (C.x - A.x) - point.x * (C.z - A.z)) /
@@ -33,15 +35,26 @@ export class DCEL {
 
     addVertex(vertex) {
         //Find the face where the vertex is inserted
-        let vertexFace;
-        for (let [key, value] of this.faces) {
-            if (this.isPointInsideTriangleFace(value, vertex)) {
-                vertexFace = value;
-                break;
+        let vertexFace = this.superFace;
+        // for (let [key, value] of this.faces) {
+        //     if (this.isPointInsideTriangleFace(value, vertex)) {
+        //         vertexFace = value;
+        //         break;
+        //     }
+        // }
+        while (vertexFace.isFaceOld) {
+            let children = vertexFace.childFaces;
+            let isChild = false;
+            for (let i = 0; i < children.length; i++) {
+                if (this.isPointInsideTriangleFace(children[i], vertex)) {
+                    vertexFace = children[i];
+                    isChild = true;
+                    break;
+                }
             }
-        }
-        if (vertexFace == null) {
-            return;
+            if (!isChild) {
+                return;
+            }
         }
         //Create and add the new halfedges to the list
         let edges = [vertexFace.edge, vertexFace.edge.nextHalfEdge, vertexFace.edge.previousHalfEdge];
@@ -114,13 +127,13 @@ export class DCEL {
         vertices[2].leavingHalfEdges.push(halfEdge5);
         vertex.leavingHalfEdges = [halfEdge2, halfEdge4, halfEdge6];
 
-        face1.faceName = vertex.vertexName + vertices[0].vertexName + vertices[1].vertexName;
+        face1.faceName = vertex.vertexName + "," + vertices[0].vertexName + "," + vertices[1].vertexName;
         face1.edge = halfEdge2;
 
-        face2.faceName = vertex.vertexName + vertices[1].vertexName + vertices[2].vertexName;
+        face2.faceName = vertex.vertexName + "," + vertices[1].vertexName + "," + vertices[2].vertexName;
         face2.edge = halfEdge4;
 
-        face3.faceName = vertex.vertexName + vertices[2].vertexName + vertices[0].vertexName;
+        face3.faceName = vertex.vertexName + "," + vertices[2].vertexName + "," + vertices[0].vertexName;
         face3.edge = halfEdge6;
 
         halfEdge2.leftSideFace = face1;
@@ -226,10 +239,10 @@ export class DCEL {
         let face1 = new Face();
         let face2 = new Face();
 
-        face1.faceName = oldEndVert.vertexName + newStartVert.vertexName + newEndVert.vertexName;
+        face1.faceName = oldEndVert.vertexName + "," + newStartVert.vertexName + "," + newEndVert.vertexName;
         face1.edge = oldEdge.nextHalfEdge;
 
-        face2.faceName = oldStartVert.vertexName + newEndVert.vertexName + newStartVert.vertexName;
+        face2.faceName = oldStartVert.vertexName + "," + newEndVert.vertexName + "," + newStartVert.vertexName;
         face2.edge = oldTwin.nextHalfEdge;
 
         halfEdge1.leftSideFace = face1;
