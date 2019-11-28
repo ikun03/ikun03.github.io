@@ -251,10 +251,10 @@ export class DCEL {
 
         //Now for each edge that points to the old half edges, it's next edge is the edge from the older second triangle
         //For each edge that points to the points of the new edges it's next edge is now the new edge
-        let edge1 = this.halfedges.get(oldEdge.nextHalfEdge.edgeName);
-        let edge2 = this.halfedges.get(oldEdge.nextHalfEdge.nextHalfEdge.edgeName);
-        let edge3 = this.halfedges.get(oldTwin.nextHalfEdge.edgeName);
-        let edge4 = this.halfedges.get(oldTwin.nextHalfEdge.nextHalfEdge.edgeName);
+        let edge1 = oldEdge.nextHalfEdge;
+        let edge2 = oldEdge.nextHalfEdge.nextHalfEdge;
+        let edge3 = oldTwin.nextHalfEdge;
+        let edge4 = oldTwin.nextHalfEdge.nextHalfEdge;
 
         edge1.previousHalfEdge = oldTwin.previousHalfEdge;
         edge1.nextHalfEdge = halfEdge1;

@@ -94,8 +94,8 @@ function main() {
 
     //My range for x can be between -3 to 3 and along z it is between 2 to -5
     let points = [];
-    for (let i = 0; i < 100; i++) {
-        points.push(new Point(getRandomArbitrary(-100, 100), 0, getRandomArbitrary(-100, 100)));
+    for (let i = 0; i < 500; i++) {
+        points.push(new Point(getRandomArbitrary(0, 300), 0, getRandomArbitrary(0, 300)));
     }
 
     //Let us create the Super triangle first
@@ -135,10 +135,10 @@ function main() {
     let pointNames = [];
     let counter = 0;
 
-    camera.position.x = 200;
+    camera.position.x = 250;
     camera.position.z = 0;
-    camera.position.y = 200;
-    camera.lookAt(0, 0, 0);
+    camera.position.y = 250;
+    camera.lookAt(100, 0, 100);
 
     let then = 0;
     let time = 0;
@@ -151,11 +151,11 @@ function main() {
         then = now;
         time += delta;
 
-        if (time > 0.1 && counter < 100) {
+        if (time > 0.1 && counter < points.length) {
             while (scene.children.length > 0) {
                 scene.remove(scene.children[0]);
             }
-            for (let i = 0; i < points.length; i++) {
+            for (let i = counter; i < points.length; i++) {
                 scene.add(points[i].pointObject);
                 //getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
             }
@@ -164,6 +164,7 @@ function main() {
             pointNames.push(vertex.vertexName);
             dcel.addVertex(vertex);
             counter++;
+            console.log(counter);
             for (let [key, value] of dcel.faces) {
                 if (value.isFaceOld) {
                     continue;
