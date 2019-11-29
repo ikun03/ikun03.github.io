@@ -83,28 +83,45 @@ function getTextGeometry(text, camera, position, scene) {
     });
 }
 
+function degToRad(number) {
+    return number * Math.PI / 180;
+}
+
+
 function handleCameraKeyPress(camera) {
     document.addEventListener('keydown', function (event) {
         switch (event.key) {
             case "ArrowDown":
             case "S":
             case "s":
-                camera.position.set(camera.position.x, camera.position.y, camera.position.z + 2);
+                camera.translateZ(2);
+                //camera.position.set(camera.position.x, camera.position.y, camera.position.z + 2);
                 break;
             case "ArrowUp":
             case "W":
             case "w":
-                camera.position.set(camera.position.x, camera.position.y, camera.position.z - 2);
+                camera.translateZ(-2);
+                //camera.position.set(camera.position.x, camera.position.y, camera.position.z - 2);
                 break;
             case "ArrowLeft":
             case "A":
             case "a":
-                camera.position.set(camera.position.x - 2, camera.position.y, camera.position.z);
+                camera.rotateY(degToRad(5));
+                //camera.position.set(camera.position.x - 2, camera.position.y, camera.position.z);
                 break;
             case "ArrowRight":
             case "D":
             case "d":
-                camera.position.set(camera.position.x + 2, camera.position.y, camera.position.z);
+                camera.rotateY(degToRad(-5));
+                //camera.position.set(camera.position.x + 2, camera.position.y, camera.position.z);
+                break;
+            case "Q":
+            case "q":
+                camera.rotateZ(degToRad(5));
+                break;
+            case "E":
+            case "e":
+                camera.rotateZ(degToRad(-5));
                 break;
 
         }
@@ -113,23 +130,25 @@ function handleCameraKeyPress(camera) {
     // adding scroll event
     document.addEventListener('wheel', function (event) {
         if (event.deltaY > 0) {
-            let vector = new THREE.Vector3(0, 0, -1);
+            /*let vector = new THREE.Vector3(0, 0, -1);
             vector.applyQuaternion(camera.quaternion);
             vector.normalize();
             let yDiff = camera.position.y;
             vector.multiplyScalar(yDiff / 2);
             vector.add(camera.position);
             camera.position.set(camera.position.x, camera.position.y - 0.5, camera.position.z);
-            camera.lookAt(vector);
+            camera.lookAt(vector);*/
+            camera.rotateX(degToRad(1));
         } else {
-            let vector = new THREE.Vector3(0, 0, -1);
+            /*let vector = new THREE.Vector3(0, 0, -1);
             vector.applyQuaternion(camera.quaternion);
             vector.normalize();
             let yDiff = camera.position.y;
             vector.multiplyScalar(yDiff / 2);
             vector.add(camera.position);
             camera.position.set(camera.position.x, camera.position.y + 0.5, camera.position.z);
-            camera.lookAt(vector);
+            camera.lookAt(vector);*/
+            camera.rotateX(degToRad(-1));
         }
         return false;
     }, false);
@@ -199,12 +218,6 @@ function main() {
     let pointList = [point1, point2, point3];
     //drawTriangle(point1, point2, point3);
 
-    // We have created the Delaunay tree here and initialized it with
-    // the root node
-    // let root = new Node(pointList);
-    // let tree = new DelaunayTree(root);
-    // addPointToTree(tree, points.pop());
-
     // Add the points to the scene
     for (let i = 0; i < points.length; i++) {
         scene.add(points[i].pointObject);
@@ -217,10 +230,10 @@ function main() {
     let counter = 0;
     let isFinalFaceDrawn = false;
 
-    camera.position.x = 150;
+    camera.position.x = 0;
     camera.position.z = 0;
     camera.position.y = 100;
-    camera.lookAt(150, 0, -50);
+    camera.lookAt(150, 0, 0);
     handleCameraKeyPress(camera);
     let then = 0;
     let time = 0;
@@ -284,17 +297,6 @@ function getLine(pointA, pointB, color = 0xffffff) {
     return new THREE.Line(geometry, material);
 }
 
-function drawPoint(pointVector, color = 0xffffff, size = 4) {
-    let dotGeometry = new THREE.Geometry();
-    dotGeometry.vertices.push(pointVector);
-    let dotMaterial = new THREE.PointsMaterial({size: size, sizeAttenuation: false, color: color});
-    return new THREE.Points(dotGeometry, dotMaterial);
-}
-
-function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
 class Point {
     constructor(x, y, z, color = 0xffffff) {
         this.x = x;
@@ -309,49 +311,6 @@ class Point {
     }
 }
 
-class Node {
-    constructor(triangleVertices) {
-        this.vertices = triangleVertices;
-        this.incomingNodes = [];
-        this.outgoingNodes = [];
-        this.isOld = false;
-        this.nodeLevel = -1;
-    }
-}
-
-class DelaunayTree {
-    constructor(rootNode) {
-        this.root = rootNode;
-        this.root.nodeLevel = 0;
-    }
-}
-
-function isPointInsideTriangle(triangleNode, point) {
-    let A = triangleNode.vertices[0];
-    let B = triangleNode.vertices[1];
-    let C = triangleNode.vertices[2];
-
-    let w1 = (A.x * (C.y - A.y) + (point.y - A.y) * (C.x - A.x) - point.x * (C.y - A.y)) /
-        ((B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y));
-    let w2 = (point.y - A.y - w1 * (B.y - A.y)) / (C.y - A.y);
-    return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
-
-}
-
-function addPointToTree(tree, point) {
-    let isPointAdded = false;
-    let nodes = [tree.root];
-    while (!isPointAdded) {
-        let triangleNode = nodes.pop();
-        if (isPointInsideTriangle(triangleNode, point)) {
-            if (!triangleNode.isOld) {
-                isPointAdded = true;
-            } else {
-                nodes = triangleNode.incomingNodes;
-            }
-        }
-    }
-}
 
 
 main();
