@@ -1,8 +1,10 @@
 import {Vertex, HalfEdge, Face, DCEL} from "./classes/dcel.js";
 
 let scene;
+// Initial state
+let scrollPos = 0;
 
-function drawTriangle(point1, point2, point3) {
+function drawTriangleWireframe(point1, point2, point3) {
     scene.add(getLine(point1.pointPositionVector, point2.pointPositionVector));
     scene.add(getLine(point2.pointPositionVector, point3.pointPositionVector));
     scene.add(getLine(point3.pointPositionVector, point1.pointPositionVector));
@@ -81,10 +83,89 @@ function getTextGeometry(text, camera, position, scene) {
     });
 }
 
+function handleCameraKeyPress(camera) {
+    document.addEventListener('keydown', function (event) {
+        switch (event.key) {
+            case "ArrowDown":
+            case "S":
+            case "s":
+                camera.position.set(camera.position.x, camera.position.y, camera.position.z + 2);
+                break;
+            case "ArrowUp":
+            case "W":
+            case "w":
+                camera.position.set(camera.position.x, camera.position.y, camera.position.z - 2);
+                break;
+            case "ArrowLeft":
+            case "A":
+            case "a":
+                camera.position.set(camera.position.x - 2, camera.position.y, camera.position.z);
+                break;
+            case "ArrowRight":
+            case "D":
+            case "d":
+                camera.position.set(camera.position.x + 2, camera.position.y, camera.position.z);
+                break;
+
+        }
+    });
+
+    // adding scroll event
+    document.addEventListener('wheel', function (event) {
+        if (event.deltaY > 0) {
+            let vector = new THREE.Vector3(0, 0, -1);
+            vector.applyQuaternion(camera.quaternion);
+            vector.normalize();
+            let yDiff = camera.position.y;
+            vector.multiplyScalar(yDiff / 2);
+            vector.add(camera.position);
+            camera.position.set(camera.position.x, camera.position.y - 0.5, camera.position.z);
+            camera.lookAt(vector);
+        } else {
+            let vector = new THREE.Vector3(0, 0, -1);
+            vector.applyQuaternion(camera.quaternion);
+            vector.normalize();
+            let yDiff = camera.position.y;
+            vector.multiplyScalar(yDiff / 2);
+            vector.add(camera.position);
+            camera.position.set(camera.position.x, camera.position.y + 0.5, camera.position.z);
+            camera.lookAt(vector);
+        }
+        return false;
+    }, false);
+}
+
+function drawTriangleFaces(dcel, scene) {
+    for (let [key, value] of dcel.faces) {
+        if (!value.isFaceOld) {
+            let faceList = value.faceName.split(",");
+            let A = dcel.vertices.get(faceList[0]);
+            let C = dcel.vertices.get(faceList[1]);
+            let B = dcel.vertices.get(faceList[2]);
+            let Avector = new THREE.Vector3(A.x, A.y, A.z);
+            let Bvector = new THREE.Vector3(B.x, B.y, B.z);
+            let Cvector = new THREE.Vector3(C.x, C.y, C.z);
+            scene.add(drawTriangle(Avector, Bvector, Cvector));
+        }
+    }
+}
+
+function drawTriangle(point1, point2, point3) {
+    var geometry = new THREE.Geometry();
+    geometry.vertices = [point1, point2, point3];
+    geometry.faces = [new THREE.Face3(0, 1, 2)];
+    let r = parseInt(getRandomArbitrary(0, 255));
+    let g = parseInt(getRandomArbitrary(0, 255));
+    let b = parseInt(getRandomArbitrary(0, 255));
+    let colorVar = new THREE.Color("rgb(" + r + "," + g + "," + b + ")");
+    let material = new THREE.MeshBasicMaterial({color: colorVar, side: THREE.DoubleSide});
+    return new THREE.Mesh(geometry, material);
+}
+
 function main() {
     scene = new THREE.Scene();
-    let width = 600;
-    let height = 600;
+    let width = 1000;
+    let height = 1000;
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
 
 
@@ -94,7 +175,7 @@ function main() {
 
     //My range for x can be between -3 to 3 and along z it is between 2 to -5
     let points = [];
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 50; i++) {
         points.push(new Point(getRandomArbitrary(0, 300), 0, getRandomArbitrary(0, 300)));
     }
 
@@ -134,12 +215,13 @@ function main() {
     let pointCounter = 0;
     let pointNames = [];
     let counter = 0;
+    let isFinalFaceDrawn = false;
 
-    camera.position.x = 250;
+    camera.position.x = 150;
     camera.position.z = 0;
-    camera.position.y = 250;
-    camera.lookAt(100, 0, 100);
-
+    camera.position.y = 100;
+    camera.lookAt(150, 0, -50);
+    handleCameraKeyPress(camera);
     let then = 0;
     let time = 0;
 
@@ -164,7 +246,6 @@ function main() {
             pointNames.push(vertex.vertexName);
             dcel.addVertex(vertex);
             counter++;
-            console.log(counter);
             for (let [key, value] of dcel.faces) {
                 if (value.isFaceOld) {
                     continue;
@@ -173,12 +254,20 @@ function main() {
                 let vertexB = value.edge.targetVertex;
                 let vertexC = value.edge.nextHalfEdge.targetVertex;
 
-                drawTriangle(new Point(vertexA.x, vertexA.y, vertexA.z),
+                drawTriangleWireframe(new Point(vertexA.x, vertexA.y, vertexA.z),
                     new Point(vertexB.x, vertexB.y, vertexB.z),
                     new Point(vertexC.x, vertexC.y, vertexC.z));
 
             }
             time = 0;
+        }
+        if (counter === points.length && !isFinalFaceDrawn) {
+            isFinalFaceDrawn = true;
+            while (scene.children.length > 0) {
+                scene.remove(scene.children[0]);
+            }
+            drawTriangleFaces(dcel, scene)
+
         }
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
