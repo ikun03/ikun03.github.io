@@ -3,13 +3,27 @@ import {Vertex, HalfEdge, Face, DCEL} from "./classes/dcel.js";
 let scene;
 // Initial state
 let scrollPos = 0;
+var keyMap = new Map();
 
+/**
+ * Draw the triangle frame
+ * @param point1
+ * @param point2
+ * @param point3
+ */
 function drawTriangleWireframe(point1, point2, point3) {
     scene.add(getLine(point1.pointPositionVector, point2.pointPositionVector));
     scene.add(getLine(point2.pointPositionVector, point3.pointPositionVector));
     scene.add(getLine(point3.pointPositionVector, point1.pointPositionVector));
 }
 
+/**
+ *Initialize the DCEL data structure
+ * @param point1
+ * @param point2
+ * @param point3
+ * @returns {DCEL}
+ */
 function initializeDCEL(point1, point2, point3) {
     let vertex1 = new Vertex("A", point1.x, point1.y, point1.z);
     let vertex2 = new Vertex("B", point2.x, point2.y, point2.z);
@@ -52,10 +66,23 @@ function initializeDCEL(point1, point2, point3) {
     return new DCEL([vertex1, vertex2, vertex3], [halfedge1, halfedge2, halfedge3], [face]);
 }
 
-function getVertex(point, pointCounter) {
-    return new Vertex("P" + pointCounter, point.x, point.y, point.z);
+/**
+ * Get the vertex object from the point and the point number
+ * @param point
+ * @param pointNumber
+ * @returns {Vertex}
+ */
+function getVertex(point, pointNumber) {
+    return new Vertex("P" + pointNumber, point.x, point.y, point.z);
 }
 
+/**
+ * Add text as a geometry to the scene
+ * @param text
+ * @param camera
+ * @param position
+ * @param scene
+ */
 function getTextGeometry(text, camera, position, scene) {
     let textGeo;
     let textObject;
@@ -83,24 +110,63 @@ function getTextGeometry(text, camera, position, scene) {
     });
 }
 
+/**
+ * Convert degree to radian
+ * @param number
+ * @returns {number}
+ */
 function degToRad(number) {
     return number * Math.PI / 180;
 }
 
+/**
+ * The class is a Gaussian which we use to create the mountains or valleys
+ */
+class Gaussian {
+    //TODO: Standardize this
+    constructor(mountain, height, sigmaX, sigmaZ, centerX, centerZ, xMax, zMax) {
+        this.M = mountain;
+        this.h = height;
+        this.sigX = sigmaX;
+        this.sigZ = sigmaZ;
+        this.centX = centerX / xMax;
+        this.xMax = xMax;
+        this.zMax = zMax;
+        this.centZ = centerZ / zMax;
+        this.height = height;
+    }
+
+    /**
+     * Get the height of x and z
+     * @param x
+     * @param z
+     * @returns {number}
+     */
+    getHeight(x, z) {
+        x = x / this.xMax;
+        z = z / this.zMax;
+        let power = Math.pow(-1, this.M);
+        let xDiff = Math.pow(x - this.centX, 2);
+        let zDiff = Math.pow(z - this.centZ, 2);
+        let val = (-((this.sigX * xDiff) + (this.sigZ * zDiff)));
+        let number = power * Math.exp(val);
+        return number * -this.height;
+    }
+}
 
 function handleCameraKeyPress(camera) {
-    document.addEventListener('keydown', function (event) {
+    /*document.addEventListener('keydown', function (event) {
         switch (event.key) {
             case "ArrowDown":
             case "S":
             case "s":
-                camera.translateZ(2);
+                camera.translateZ(5);
                 //camera.position.set(camera.position.x, camera.position.y, camera.position.z + 2);
                 break;
             case "ArrowUp":
             case "W":
             case "w":
-                camera.translateZ(-2);
+                camera.translateZ(-5);
                 //camera.position.set(camera.position.x, camera.position.y, camera.position.z - 2);
                 break;
             case "ArrowLeft":
@@ -125,6 +191,14 @@ function handleCameraKeyPress(camera) {
                 break;
 
         }
+    });*/
+
+    document.addEventListener('keydown', function (event) {
+        keyMap.set(event.key, true);
+    });
+
+    document.addEventListener('keyup', function (event) {
+        keyMap.set(event.key, false);
     });
 
     // adding scroll event
@@ -154,9 +228,55 @@ function handleCameraKeyPress(camera) {
     }, false);
 }
 
+
+function handleCameraControl(camera) {
+    for (let [key, value] of keyMap) {
+        if (value) {
+            switch (key) {
+                case "ArrowDown":
+                case "S":
+                case "s":
+                    camera.translateZ(5);
+                    //camera.position.set(camera.position.x, camera.position.y, camera.position.z + 2);
+                    break;
+                case "ArrowUp":
+                case "W":
+                case "w":
+                    camera.translateZ(-5);
+                    //camera.position.set(camera.position.x, camera.position.y, camera.position.z - 2);
+                    break;
+                case "ArrowLeft":
+                case "A":
+                case "a":
+                    camera.rotateY(degToRad(5));
+                    //camera.position.set(camera.position.x - 2, camera.position.y, camera.position.z);
+                    break;
+                case "ArrowRight":
+                case "D":
+                case "d":
+                    camera.rotateY(degToRad(-5));
+                    //camera.position.set(camera.position.x + 2, camera.position.y, camera.position.z);
+                    break;
+                case "Q":
+                case "q":
+                    camera.rotateZ(degToRad(5));
+                    break;
+                case "E":
+                case "e":
+                    camera.rotateZ(degToRad(-5));
+                    break;
+
+            }
+        }
+    }
+}
+
 function drawTriangleFaces(dcel, scene) {
     for (let [key, value] of dcel.faces) {
         if (!value.isFaceOld) {
+            if (value.faceName.includes("A") || value.faceName.includes("B") || value.faceName.includes("C")) {
+                continue;
+            }
             let faceList = value.faceName.split(",");
             let A = dcel.vertices.get(faceList[0]);
             let C = dcel.vertices.get(faceList[1]);
@@ -164,22 +284,49 @@ function drawTriangleFaces(dcel, scene) {
             let Avector = new THREE.Vector3(A.x, A.y, A.z);
             let Bvector = new THREE.Vector3(B.x, B.y, B.z);
             let Cvector = new THREE.Vector3(C.x, C.y, C.z);
-            scene.add(drawTriangle(Avector, Bvector, Cvector));
+            let minY = Math.min(A.y, B.y, C.y);
+            let color;
+            if (minY < 50) {
+                color = new THREE.Color(0x288b22)
+            } else if (minY >= 50 && minY < 80) {
+                color = new THREE.Color(0x74663b);
+            } else {
+                color = new THREE.Color(0xffffff);
+            }
+            scene.add(drawTriangle(Avector, Bvector, Cvector, color));
         }
     }
 }
 
-function drawTriangle(point1, point2, point3) {
+function drawTriangle(point1, point2, point3, color) {
     var geometry = new THREE.Geometry();
     geometry.vertices = [point1, point2, point3];
     geometry.faces = [new THREE.Face3(0, 1, 2)];
-    let r = parseInt(getRandomArbitrary(0, 255));
-    let g = parseInt(getRandomArbitrary(0, 255));
-    let b = parseInt(getRandomArbitrary(0, 255));
-    let colorVar = new THREE.Color("rgb(" + r + "," + g + "," + b + ")");
-    let material = new THREE.MeshBasicMaterial({color: colorVar, side: THREE.DoubleSide});
+    let material = new THREE.MeshBasicMaterial({color: color, side: THREE.DoubleSide});
     return new THREE.Mesh(geometry, material);
 }
+
+function applyGaussianToPoints(dcel, gaussianPoints) {
+    for (let [key, value] of dcel.vertices) {
+        for (let i = 0; i < gaussianPoints.length; i++) {
+            let y = gaussianPoints[i].getHeight(value.x, value.z);
+            if (dcel.vertices.get(key).y < y) {
+                dcel.vertices.get(key).y = y;
+            }
+        }
+    }
+}
+
+function drawMountains(dcel, noOfMountains) {
+    let gaussianPoints = [];
+    for (let i = 0; i < noOfMountains; i++) {
+        let gaussianPoint = new Gaussian(1, getRandomArbitrary(30, 100), getRandomArbitrary(7, 10), getRandomArbitrary(7, 10)
+            , getRandomArbitrary(0, 600), getRandomArbitrary(0, 600));
+        gaussianPoints.push(gaussianPoint);
+    }
+    applyGaussianToPoints(dcel, gaussianPoints);
+}
+
 
 function main() {
     scene = new THREE.Scene();
@@ -194,8 +341,8 @@ function main() {
 
     //My range for x can be between -3 to 3 and along z it is between 2 to -5
     let points = [];
-    for (let i = 0; i < 50; i++) {
-        points.push(new Point(getRandomArbitrary(0, 300), 0, getRandomArbitrary(0, 300)));
+    for (let i = 0; i < 100; i++) {
+        points.push(new Point(getRandomArbitrary(0, 600), 0, getRandomArbitrary(0, 600)));
     }
 
     //Let us create the Super triangle first
@@ -246,7 +393,7 @@ function main() {
         then = now;
         time += delta;
 
-        if (time > 0.1 && counter < points.length) {
+        if (time > 0.05 && counter < points.length) {
             while (scene.children.length > 0) {
                 scene.remove(scene.children[0]);
             }
@@ -279,9 +426,12 @@ function main() {
             while (scene.children.length > 0) {
                 scene.remove(scene.children[0]);
             }
+            drawMountains(dcel, 6);
             drawTriangleFaces(dcel, scene)
 
         }
+
+        handleCameraControl(camera);
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
@@ -297,6 +447,10 @@ function getLine(pointA, pointB, color = 0xffffff) {
     return new THREE.Line(geometry, material);
 }
 
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
 class Point {
     constructor(x, y, z, color = 0xffffff) {
         this.x = x;
@@ -310,7 +464,6 @@ class Point {
         this.pointObject = new THREE.Points(dotGeometry, dotMaterial);
     }
 }
-
 
 
 main();
