@@ -71,12 +71,12 @@ canvas {
     width: 50%;
     text-align: center;
     margin-right: auto;
-    margin-left: auto;/* Width of the outside container */
+    margin-left: auto; /* Width of the outside container */
 }
 
 /* The slider itself */
 .slider {
-    -webkit-appearance: none;  /* Override default CSS styles */
+    -webkit-appearance: none; /* Override default CSS styles */
     appearance: none;
     width: 100%; /* Full-width */
     height: 25px; /* Specified height */
@@ -107,4 +107,10 @@ canvas {
     height: 25px; /* Slider handle height */
     background: lightseagreen; /* Green background */
     cursor: pointer; /* Cursor on hover */
+}
+
+input[type=text] {
+    font-size: large;
+    background-color: whitesmoke;
+    align-content: center;
 }

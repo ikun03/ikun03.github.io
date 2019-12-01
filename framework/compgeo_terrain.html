@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="../stylesheets/default_style.css">
+<link rel="stylesheet" href="../stylesheets/default_style.css" xmlns:align-content="http://www.w3.org/1999/xhtml">
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -14,6 +14,63 @@
     </style>
 </head>
 <body>
+<h1 style="text-align: center">Pedagogical Aid for Procedural Map and Terrain Generation</h1>
+<div>
+    <p style="text-align: justify;font-size: x-large">The following tool will let you see how you can use the Delaunay
+        triangulation to
+        generate terrain.
+        <br>
+        You can play around with the variables to control the terrain being generated.
+        <br>
+    </p>
+    <form style="font-size: x-large;">
+        <label>
+            Length of the X-axis:
+            <input type="text" id="xMax" value="600">
+        </label>
+        <br>
+        <br>
+        <label>
+            Length of along the Z-axis:
+            <input type="text" id="zMax" value="600">
+        </label>
+        <br>
+        <br>
+        <label>
+            No. of points:
+            <input type="text" id="pointCt" value="1000">
+        </label>
+        <br>
+        <br>
+        <label>
+            No. of mountains to generate:
+            <input type="text" id="mountains" value="5">
+        </label>
+        <br>
+        <br>
+        <label>
+            Maximum Mountain Height:
+            <input type="text" id="maxHeight" value="100">
+        </label>
+        <br>
+        <br>
+        <label>
+            No. of valleys to generate:
+            <input type="text" id="valleys" value="3">
+        </label>
+        <br>
+        <br>
+        <label>
+            Minimum Valley Depth:
+            <input type="text" id="minDepth" value="50">
+        </label>
+        <br>
+        <br>
+        <button style="font-size: large" type="button" id="generateBtn">
+            Generate
+        </button>
+    </form>
+</div>
 <script src="../scripts/gl-matrix.js"></script>
 <script src="../scripts/three.js" type="module"></script>
 <script src="../scripts/classes/dcel.js" type="module"></script>
