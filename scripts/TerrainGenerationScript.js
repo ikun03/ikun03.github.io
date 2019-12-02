@@ -205,12 +205,13 @@ function handleCameraKeyPress(camera) {
 
     document.addEventListener('keydown', function (event) {
         keyMap.set(event.key, true);
-        event.preventDefault();
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+        }
     });
 
     document.addEventListener('keyup', function (event) {
         keyMap.set(event.key, false);
-        event.preventDefault();
     });
 
     // adding scroll event
@@ -354,8 +355,8 @@ function drawMountainsOrValleys(dcel, noOfMountains, noOfValleys, hMax, vMin, xM
 
 function main() {
     scene = new THREE.Scene();
-    let width = 1000;
-    let height = 1000;
+    let width = window.innerWidth - 40;
+    let height = window.innerHeight - 40;
     let camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 5000);
     let renderer = new THREE.WebGLRenderer();
     document.body.appendChild(renderer.domElement);
