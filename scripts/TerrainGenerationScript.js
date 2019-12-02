@@ -295,21 +295,28 @@ function drawTriangleFaces(dcel, scene, heightColorTable, hmax, baseVal) {
             let C = dcel.vertices.get(faceList[1]);
             let B = dcel.vertices.get(faceList[2]);
             let Avector = new THREE.Vector3(A.x, A.y, A.z);
+            let AColIndex = parseInt("" + ((A.y + baseVal) / hmax) * 10);
+            let Acolor = heightColorTable[AColIndex];
             let Bvector = new THREE.Vector3(B.x, B.y, B.z);
+            let BColIndex = parseInt("" + ((B.y + baseVal) / hmax) * 10);
+            let Bcolor = heightColorTable[BColIndex];
             let Cvector = new THREE.Vector3(C.x, C.y, C.z);
-            let minY = Math.min(A.y, B.y, C.y) + baseVal;
-            let color;
-            color = heightColorTable[Math.floor((minY / hmax) * 10)];
-            scene.add(drawTriangle(Avector, Bvector, Cvector, color));
+            let CColIndex = parseInt("" + ((C.y + baseVal) / hmax) * 10);
+            let CColor = heightColorTable[CColIndex];
+            scene.add(drawTriangle(Avector, Bvector, Cvector, [Acolor, Bcolor, CColor]));
         }
     }
 }
 
-function drawTriangle(point1, point2, point3, color) {
+function drawTriangle(point1, point2, point3, colors) {
     var geometry = new THREE.Geometry();
     geometry.vertices = [point1, point2, point3];
-    geometry.faces = [new THREE.Face3(0, 1, 2)];
-    let material = new THREE.MeshBasicMaterial({color: color, side: THREE.DoubleSide});
+    let face3 = new THREE.Face3(0, 1, 2);
+    face3.vertexColors[0] = colors[0];
+    face3.vertexColors[1] = colors[1];
+    face3.vertexColors[2] = colors[2];
+    geometry.faces = [face3];
+    let material = new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors, side: THREE.DoubleSide});
     return new THREE.Mesh(geometry, material);
 }
 
@@ -347,8 +354,8 @@ function main() {
     scene = new THREE.Scene();
     let width = 1000;
     let height = 1000;
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
+    let camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 5000);
+    let renderer = new THREE.WebGLRenderer();
     document.body.appendChild(renderer.domElement);
     renderer.setSize(width, height);
     renderer.domElement.style.visibility = "hidden";
@@ -359,42 +366,50 @@ function main() {
     let noOfMountains;
     let noOfValleys;
     let minValleyDepth;
+    let stopGeneration = false;
+    let applyHeightMap = false;
+    let applyMesh = false;
 
     let heightColorTable = [
-            //seaweed color
-            new THREE.Color(0x006600),
-            //grass green
-            new THREE.Color(0x4C9900),
-            //lighter grass green
-            new THREE.Color(0x4C9900),
-            //dirt green color
-            new THREE.Color(0x608963),
-            //darker dirt brown
-            new THREE.Color(0x5D432C),
-            //beaver brown
-            new THREE.Color(0x78675D),
-            //Almond color
-            new THREE.Color(0xEFDECD),
-            //Dark gray
-            new THREE.Color(0xA5A5A5),
-            //Smoke white
-            new THREE.Color(0xF5F5F5),
-            //White
-            new THREE.Color(0xF9F9F9),
-        ]
-    ;
+        //seaweed color
+        new THREE.Color(0x006600),
+        //grass green
+        new THREE.Color(0x4C9900),
+        //forest green
+        new THREE.Color(0x1E7B1E),
+        //green
+        new THREE.Color(0x228B22),
+        //dark green
+        new THREE.Color(0x006400),
+        //Dark gray
+        new THREE.Color(0x556b2F),
+        //darker dirt brown
+        new THREE.Color(0x5D432C),
+        //beaver brown
+        new THREE.Color(0x78675D),
+        //Beaver brown
+        new THREE.Color(0x78675D),
+        //White
+        new THREE.Color(0xF9F9F9),
+    ];
 
 
     //My range for x can be between -3 to 3 and along z it is between 2 to -5
-    let points = [];
+
     let pointCounter;
-    let pointNames = [];
-    let counter = 0;
-    let isFinalFaceDrawn = false;
     let dcel;
-    let notPressed = false;
+
 
     document.getElementById("generateBtn").addEventListener("click", function () {
+        stopGeneration = false;
+        applyMesh = false;
+        applyHeightMap = false;
+
+        let points = [];
+        let pointNames = [];
+        let isFinalFaceDrawn = false;
+        let counter = 0;
+
         xMax = parseInt(document.getElementById("xMax").value);
         zMax = parseInt(document.getElementById("zMax").value);
         noOfMountains = parseInt(document.getElementById("mountains").value);
@@ -435,7 +450,6 @@ function main() {
         }
         dcel = initializeDCEL(point1, point2, point3);
         pointCounter = pointCount;
-        notPressed = true;
         // We add the points to the triangulation one by one
 
 
@@ -461,6 +475,8 @@ function main() {
 
         let then = 0;
         let time = 0;
+        let isChanged = true;
+        let drawWireFrame;
 
         function animate(now) {
 
@@ -471,18 +487,56 @@ function main() {
             time += delta;
 
             if (time > 0.05 && counter < points.length) {
-                while (scene.children.length > 0) {
-                    scene.remove(scene.children[0]);
-                }
-                for (let i = counter; i < points.length; i++) {
-                    scene.add(points[i].pointObject);
-                    //getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
-                }
-
                 let vertex = getVertex(points[counter], pointCounter++);
                 pointNames.push(vertex.vertexName);
                 dcel.addVertex(vertex);
                 counter++;
+                time = 0;
+                isChanged = true;
+                drawWireFrame = true;
+            }
+
+            if (counter === points.length && applyHeightMap) {
+                drawMountainsOrValleys(dcel, noOfMountains, noOfValleys, maxMountainHeight, minValleyDepth, xMax, zMax, mountainPoints, valleyPoints);
+                applyHeightMap = false;
+                isChanged = true;
+            }
+            if (counter === points.length && applyMesh) {
+                while (scene.children.length > 0) {
+                    scene.remove(scene.children[0]);
+                }
+                drawTriangleFaces(dcel, scene, heightColorTable, maxMountainHeight + minValleyDepth, minValleyDepth);
+                applyMesh = false;
+                document.getElementById("heightBtn").innerText = "Show Mesh";
+                document.getElementById("heightBtn").addEventListener("click", function () {
+                    applyMesh = true;
+                    drawWireFrame = true;
+                    applyHeightMap = false;
+                });
+                if (drawWireFrame) {
+                    document.getElementById("heightBtn").innerText = "Hide Mesh";
+                    document.getElementById("heightBtn").addEventListener("click", function () {
+                        applyMesh = true;
+                        drawWireFrame = false;
+                        applyHeightMap = false;
+                    });
+                }
+
+            } else {
+                if (isChanged) {
+                    isChanged = false;
+                    while (scene.children.length > 0) {
+                        scene.remove(scene.children[0]);
+                    }
+                    for (let i = counter; i < points.length; i++) {
+                        scene.add(points[i].pointObject);
+                        //getTextGeometry(pointNames[i], camera, points[i].pointPositionVector, scene);
+                    }
+                    drawWireFrame = true;
+                }
+            }
+            if (drawWireFrame) {
+                drawWireFrame = false;
                 for (let [key, value] of dcel.faces) {
                     if (value.isFaceOld) {
                         continue;
@@ -496,24 +550,33 @@ function main() {
                         new Point(vertexC.x, vertexC.y, vertexC.z));
 
                 }
-                time = 0;
-            }
-            if (counter === points.length && !isFinalFaceDrawn) {
-                isFinalFaceDrawn = true;
-                while (scene.children.length > 0) {
-                    scene.remove(scene.children[0]);
-                }
-                drawMountainsOrValleys(dcel, noOfMountains, noOfValleys, maxMountainHeight, minValleyDepth, xMax, zMax, mountainPoints, valleyPoints);
-                drawTriangleFaces(dcel, scene, heightColorTable, maxMountainHeight + minValleyDepth, minValleyDepth);
-
             }
 
             handleCameraControl(camera);
-            requestAnimationFrame(animate);
+
+            if (!stopGeneration) {
+                requestAnimationFrame(animate);
+            }
             renderer.render(scene, camera);
+
+
         }
 
         requestAnimationFrame(animate)
+    });
+    document.getElementById("stopBtn").addEventListener("click", function () {
+        stopGeneration = true;
+        // scene = new THREE.Scene();
+        // camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        //renderer.domElement.style.visibility = "hidden";
+    });
+
+    document.getElementById("heightBtn").addEventListener("click", function () {
+        applyHeightMap = true;
+    });
+
+    document.getElementById("meshBtn").addEventListener("click", function () {
+        applyMesh = true;
     });
 
 
