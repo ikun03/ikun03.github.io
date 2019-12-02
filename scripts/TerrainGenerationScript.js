@@ -205,10 +205,12 @@ function handleCameraKeyPress(camera) {
 
     document.addEventListener('keydown', function (event) {
         keyMap.set(event.key, true);
+        event.preventDefault();
     });
 
     document.addEventListener('keyup', function (event) {
         keyMap.set(event.key, false);
+        event.preventDefault();
     });
 
     // adding scroll event
@@ -369,6 +371,7 @@ function main() {
     let stopGeneration = false;
     let applyHeightMap = false;
     let applyMesh = false;
+    let isTerrainDrawn = false;
 
     let heightColorTable = [
         //seaweed color
@@ -398,12 +401,16 @@ function main() {
 
     let pointCounter;
     let dcel;
+    let heightBtn = document.getElementById("heightBtn");
+    let drawWireFrame;
 
 
     document.getElementById("generateBtn").addEventListener("click", function () {
         stopGeneration = false;
         applyMesh = false;
         applyHeightMap = false;
+        isTerrainDrawn = false;
+        heightBtn.innerText = "Apply Height Map";
 
         let points = [];
         let pointNames = [];
@@ -418,7 +425,12 @@ function main() {
         noOfValleys = parseInt(document.getElementById("valleys").value);
         minValleyDepth = parseInt(document.getElementById("minDepth").value);
         renderer.domElement.style.visibility = "visible";
-
+        if (noOfMountains === 0) {
+            maxMountainHeight = 0;
+        }
+        if (noOfValleys === 0) {
+            minValleyDepth = 0
+        }
         for (let i = 0; i < pointCount; i++) {
             points.push(new Point(getRandomArbitrary(0, xMax), 0, getRandomArbitrary(0, zMax)));
         }
@@ -476,7 +488,6 @@ function main() {
         let then = 0;
         let time = 0;
         let isChanged = true;
-        let drawWireFrame;
 
         function animate(now) {
 
@@ -507,20 +518,8 @@ function main() {
                 }
                 drawTriangleFaces(dcel, scene, heightColorTable, maxMountainHeight + minValleyDepth, minValleyDepth);
                 applyMesh = false;
-                document.getElementById("heightBtn").innerText = "Show Mesh";
-                document.getElementById("heightBtn").addEventListener("click", function () {
-                    applyMesh = true;
-                    drawWireFrame = true;
-                    applyHeightMap = false;
-                });
-                if (drawWireFrame) {
-                    document.getElementById("heightBtn").innerText = "Hide Mesh";
-                    document.getElementById("heightBtn").addEventListener("click", function () {
-                        applyMesh = true;
-                        drawWireFrame = false;
-                        applyHeightMap = false;
-                    });
-                }
+                isTerrainDrawn = true;
+                heightBtn.innerText = "Show Mesh";
 
             } else {
                 if (isChanged) {
@@ -536,6 +535,9 @@ function main() {
                 }
             }
             if (drawWireFrame) {
+                if (isTerrainDrawn) {
+                    heightBtn.innerText = "Hide Mesh";
+                }
                 drawWireFrame = false;
                 for (let [key, value] of dcel.faces) {
                     if (value.isFaceOld) {
@@ -571,8 +573,20 @@ function main() {
         //renderer.domElement.style.visibility = "hidden";
     });
 
-    document.getElementById("heightBtn").addEventListener("click", function () {
-        applyHeightMap = true;
+    heightBtn.addEventListener("click", function () {
+        if (!isTerrainDrawn) {
+            applyHeightMap = true;
+        } else {
+            if (heightBtn.innerText === "Show Mesh") {
+                applyMesh = true;
+                drawWireFrame = true;
+                heightBtn.innerText = "Hide Mesh";
+            } else {
+                applyMesh = true;
+                drawWireFrame = false;
+                heightBtn.innerText = "Show Mesh";
+            }
+        }
     });
 
     document.getElementById("meshBtn").addEventListener("click", function () {
