@@ -4,26 +4,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <style type="text/css">
+        p {
+            text-align: justify;
+            display: inline-block;
+            font-size: large;
+        }
+
+        h2 {
+            color: lightseagreen;
+            font-size: x-large;
+            text-align: left;
+        }
+
+        h3 {
+            color: lightseagreen;
+            font-size: large;
+        }
+
+        a {
+            font-size: large;
+        }
+    </style>
     <title>Computational Geometry Project Proposal</title>
 </head>
 <body>
-<div style="text-align: center">
-    <h1>Pedagogical Aid for Procedural Map and Terrain Generation</h1>
-    <p style="text-align: left"> Procedural generation of terrain has long been useful in games and simulations. Using
-        techniques such as
-        delaunay triangulations and Voronoi diagrams, developers can generate realistic looking terrains for use in
-        their applications. The techniques that are used for generating terrains are also useful for reconstruction of
-        maps in 3-D space and simulating naturally occuring phenomena such as earthquakes and erosion. Therefore for
-        this project, I plan on creating an application/pedagogical aid that will allow users to see the breakdown of
-        procedural terrain generation process and see how it takes place. My plan is to create a tool that not only
-        generates a random terrain but allows users to observe the process and modify certain variables so that they can
-        gain a better understanding of this application of Computational Geometry.</p>
+<div style=" width: 80%; margin: auto">
+    <h1 style="text-align: center">Pedagogical Aid for Procedural Map and Terrain Generation</h1>
+    <h2>Developed by:</h2>
+    <a href="mailto:ikunal03@gmail.com">Kunal Shitut</a> in <a href="https://threejs.org/">Three.js</a>
+    <h2>Problem Statement:</h2>
+    <p>
+        For a long time, one of the more interesting problem in Computer Graphics has been that of generating
+        realistic looking terrain. Procedural terrain generation is widely used in Video games, film making and
+        simulations. By using realistic terrain models, naturally occurring phenomena such as tectonic plate shifts,
+        erosion and earthquakes can be simulated and studied. The objective behind creating this tool was to implement
+        a simple way to generate terrain using the Delaunay triangulation. The idea behind using Delaunay triangulation
+        of random points as opposed to a grid is to create terrain that simulates natural erosion. The tool allows you
+        to change the variables and generates randomized terrain based on them. During and after the terrain creation
+        process users can move around the world using the controls given on the tool page.
+    </p>
     <h2>
-        References
+        <a style="font-size: x-large; color: lightseagreen" href="compgeo_terrain.html"> Click here </a>
+        for the tool</h2>
+    <h2>
+        References:
     </h2>
-    <div style="display: inline-block; text-align: left">
+    <div style="display: inline-block; text-align: left; width: 75%">
         <ol>
-            <li><a href="http://web.mit.edu/cesium/Public/terrain.pdf">Olsen, Jacob. "Realtime procedural terrain
+            <li>
+                <a href="https://pdfs.semanticscholar.org/9530/84531adc455ba37b4e9e68b0fd15a4958cb7.pdf">Razafindrazaka,
+                    Faniry Harijaona. "Delaunay triangulation algorithm and application to terrain
+                    generation." postgraduate diploma.–African Institute for Mathematical Sciences May (2009).</a>
+            </li>
+            <!--<li><a href="http://web.mit.edu/cesium/Public/terrain.pdf">Olsen, Jacob. "Realtime procedural terrain
                 generation." (2004): 31.</a></li>
             <li>
                 <a href="http://hpcg.purdue.edu/papers/Genevaux13Sigg.pdf">Génevaux, Jean-David, et al. "Terrain
@@ -34,19 +68,97 @@
             <li>
                 <a href="https://www.cs.williams.edu/~morgan/cs371-f16/gallery/4-midterm/terrain/report.md.html">Procedurally
                     Generating Stylized Farmland Scenes</a>
-            </li>
+            </li>-->
             <li>
-                <a href="https://pdfs.semanticscholar.org/9530/84531adc455ba37b4e9e68b0fd15a4958cb7.pdf">Razafindrazaka,
-                    Faniry Harijaona. "Delaunay triangulation algorithm and application to terrain
-                    generation." postgraduate diploma.–African Institute for Mathematical Sciences May (2009).</a>
+                <a href="https://www.ti.inf.ethz.ch/ew/courses/CG12/lecture/Chapter%205.pdf">Chapter 5: Plane Graphs and
+                    DCEL</a>
             </li>
             <li>
                 <a href="http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/">Patel,
                     Amit.
                     "Polygonal map generation for games." Red Blob Games 4 (2010).</a>
             </li>
+            <li>
+                <a href="https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/">
+                    Destrolas, Terrain Generation 3: Voronoi Diagrams
+                </a>
+            </li>
         </ol>
     </div>
+    <h2>Algorithm:</h2>
+    <p>For generating the mesh, I have used the algorithm from <a
+            href="https://pdfs.semanticscholar.org/9530/84531adc455ba37b4e9e68b0fd15a4958cb7.pdf">Razafindrazaka et.
+        al</a> with some changes. The algorithm starts by generating a set of random points which will be used as
+        vertices of the mesh.
+        The algorithm starts by creating a triangle face that will include every generated vertex. This is the first
+        face of the triangulation. When we add a point to a face, we split the face into three triangles where each
+        triangle has the new point as one vertex and two points from the original triangle as the other vertices. The
+        new faces are inserted as children of the old parent face. After the creation of the three new faces, we must
+        ensure that the edges of a face are valid by ensuring that any fourth vertex does not lie in or on the
+        circumcircle of a
+        face. If an edge is not valid then the edge is flipped with the two other vertices of the two triangles and the
+        new faces are recursively validated. Once the validation is finished, we will have the Delaunay triangulated
+        mesh
+        for the points. One by one all the points are added to create the entire mesh. Once the mesh has been obtained,
+        random points are selected for valleys and mountains whose number is provided by the user. Each point is given a
+        random height between the maximum height and it's half. These heights and points are used to create a two
+        dimensional Gaussian function. Each point is assigned the value of the Gaussian function of the mountain or
+        hill closest to it. This gives the terrain steep slopes which is generally expected from any mountain. Once
+        the height map is applied to all the vertices, the actual filled faces of the mesh can be generated. Each vertex
+        is assigned a color based on it's height and then each triangle face interpolates between the colors of it's
+        three
+        vertices. Once the terrain is created the user can turn the mesh on or off.
+    </p>
+    <h2>
+        Data Structure:
+    </h2>
+    <p>
+        For the algorithm to work efficiently, it is essential that each face, edge and vertex be aware of every
+        edge ,vertex and face surrounding it. For this purpose we use a Data structure known as <a
+            href="https://www.ti.inf.ethz.ch/ew/courses/CG12/lecture/Chapter%205.pdf">Doubly Connected Edge
+        List</a>. My implementation of this data structure is a bit more complicated than the traditional. The data
+        structure keeps track of each vertex, face and half edge(which is a one directional edge from one vertex to
+        other) using maps. Each vertex is also aware of all the edges leaving from it. Each half edge is aware of the
+        face that it belongs to, it's twin which contributes to the adjacent face, it's next edge, it's previous edge
+        in the face and it's vertices. Each face is aware of just one edge which contributes to it, using which it can
+        track all the other vertices and edges. Using this data structure, adding a vertex can be done in O(log n) time
+        where n is the number of faces. Flipping an edge can be done is O(1) time.
+    </p>
+    <h2>
+        Pseudocode:
+    </h2>
+    <p>
+        Here is the pseudocode for adding a vertex to the triangulation:
+        <br>
+        <br>
+        <b>Method:</b> <i>addVertex(vertex)</i>:
+        <br>
+        <br><b>1.</b>&emsp;face = dcel.root;
+        <br><b>2.</b>&emsp;while(face.isOld):
+        <br><b>3.</b>&emsp;&emsp;foreach child of face:
+        <br><b>4.</b>&emsp;&emsp;&emsp;if child contains vertex:
+        <br><b>5.</b>&emsp;&emsp;&emsp;&emsp;face = child;
+        <br><b>6.</b>&emsp;&emsp;&emsp;&emsp;break;
+        <br><b>7.</b>&emsp;Create 6 new halfedges from new vertex to each vertex of face.
+        <br><b>8.</b>&emsp;Create 3 new faces from the three old and one new vertex.
+        <br><b>9.</b>&emsp;Assign each old and new halfedge the correct halfedges and its new face.
+        <br><b>10.</b>&emsp;Add the new faces,halfedges and vertices to the maps.
+        <br><b>11.</b>&emsp;Mark the old face as old and set it's children to the new faces.
+        <br><b>12.</b>&emsp;Verify the old edges to ensure that the faces surrounding the new faces are valid.
+    </p>
+    <br>
+    <p>Here is the pseudocode for flipping the edges after determining if the faces are invalid or not
+        <br>
+        <br>
+        <b>Method:</b><i>flipEdges(oldFace,invalidFacePoint)</i>:
+        <br>
+        <br><b>1.</b>&emsp;Get the shared edge between invalid face and oldFace.
+        <br><b>2.</b>&emsp;Create the objects for two new halfedges and faces.
+        <br><b>3.</b>&emsp;Assign the old edges to the new faces and the new edges.
+        <br><b>4.</b>&emsp;Assign the new faces to the old edges.
+        <br><b>4.</b>&emsp;Mark the old faces as old and set its children to the new faces.
+        <br><b>5.</b>&emsp;Recursively verify if the faces surrounding the old edges are valid.
+    </p>
 </div>
 </body>
 </html>

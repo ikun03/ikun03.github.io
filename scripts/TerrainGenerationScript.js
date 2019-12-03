@@ -436,7 +436,6 @@ function main() {
             points.push(new Point(getRandomArbitrary(0, xMax), 0, getRandomArbitrary(0, zMax)));
         }
 
-
         //Let us create the Super triangle first
         let absoluteMax = 0;
         for (let i = 0; i < points.length; i++) {
