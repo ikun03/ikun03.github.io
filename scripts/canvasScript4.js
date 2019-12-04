@@ -20,6 +20,22 @@ let rotTimer = 0;
 let p_1, p_2;
 let P_at_u_x, P_at_u_y, P_at_u_z;
 
+let vertexShader = "attribute float size;\n" +
+    "\t\t\tvarying vec3 vColor;\n" +
+    "\t\t\tvoid main() {\n" +
+    "\t\t\t\tvColor = color;\n" +
+    "\t\t\t\tvec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\n" +
+    "\t\t\t\tgl_PointSize = size * ( 300.0 / -mvPosition.z );\n" +
+    "\t\t\t\tgl_Position = projectionMatrix * mvPosition;\n" +
+    "\t\t\t}\n";
+
+let fragmentShader = "\tuniform sampler2D pointTexture;\n" +
+    "\t\t\tvarying vec3 vColor;\n" +
+    "\t\t\tvoid main() {\n" +
+    "\t\t\t\tgl_FragColor = vec4( vColor, 1.0 );\n" +
+    "\t\t\t\tgl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );\n" +
+    "\t\t\t}";
+
 function toRotnMatrix(quat1) {
     let m = new THREE.Matrix4();
     m.set(
@@ -100,9 +116,9 @@ function main() {
     renderer.setSize(width, height);
     document.body.appendChild(renderer.domElement);
 
-    var light = new THREE.DirectionalLight( 0xffffff );
+    var light = new THREE.PointLight(0xffffff);
 
-    light.position.set( 0, 0, 5 ).normalize();
+    light.position.set(0, 0, 5).normalize();
     scene.add(light);
 
     var geometry = new THREE.SphereGeometry(1, 32, 32);
@@ -137,8 +153,45 @@ function main() {
         keyframesArray[j].quaternion = quaternion;
     }
 
+    //https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/spark1.png
+    let uniforms = {
+        pointTexture: {value: new THREE.TextureLoader().load("textures/spark1.png")}
+    };
+
+    let shaderMat = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        blending: THREE.AdditiveBlending,
+        depthTest: false,
+        transparent: true,
+        vertexColors: true
+    });
+
+    var radius = 5;
+    geometry = new THREE.BufferGeometry();
+    var positions = [];
+    var colors = [];
+    var sizes = [];
+    var color = new THREE.Color();
+    for (var i = 0; i < 100; i++) {
+        positions.push((Math.random() * 2 - 1) * radius);
+        positions.push((Math.random() * 2 - 1) * radius);
+        positions.push((Math.random() * 2 - 1) * radius);
+        color.setHSL(i / 100, 1.0, 0.5);
+        colors.push(color.r, color.g, color.b);
+        sizes.push(0.5);
+    }
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    let particleSystem = new THREE.Points(geometry, shaderMat);
+
+    scene.add(particleSystem);
+
+
     camera.position.z = 5;
-    //camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 0, 0);
 
     let then = 0;
     let passedTime = 0;
@@ -149,6 +202,7 @@ function main() {
         passedTime += deltaTime;
         then = now;
         drawScene(cube, deltaTime, passedTime, keyframesArray);
+
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
