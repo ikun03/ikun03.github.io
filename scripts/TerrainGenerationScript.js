@@ -476,6 +476,7 @@ function main() {
             camera.position.y = 50;
             camera.lookAt(xMax / 2, 50, 5);
         });
+
         handleCameraKeyPress(camera);
 
         let mountainPoints = [];
@@ -525,7 +526,7 @@ function main() {
                 }
                 drawTriangleFaces(dcel, scene, heightColorTable, maxMountainHeight + minValleyDepth, minValleyDepth);
                 var geometry = new THREE.PlaneGeometry(xMax, zMax, 1, 1);
-                var material = new THREE.MeshBasicMaterial({color: 0x0033ee, side: THREE.DoubleSide});
+                var material = new THREE.MeshBasicMaterial({color: 0x0033aa, side: THREE.DoubleSide});
                 var plane = new THREE.Mesh(geometry, material);
                 plane.position.set(xMax / 2, 0, zMax / 2);
                 plane.rotation.set(degToRad(90), 0, minValleyDepth / 2);
