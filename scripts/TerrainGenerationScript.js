@@ -403,6 +403,7 @@ function main() {
     let pointCounter;
     let dcel;
     let heightBtn = document.getElementById("heightBtn");
+    let cameraBtn = document.getElementById("cameraBtn");
     let drawWireFrame;
 
 
@@ -465,10 +466,16 @@ function main() {
         // We add the points to the triangulation one by one
 
 
-        camera.position.x = 0;
+        camera.position.x = xMax / 2;
         camera.position.z = 0;
-        camera.position.y = 100;
-        camera.lookAt(150, 0, 0);
+        camera.position.y = 50;
+        camera.lookAt(xMax / 2, 50, 5);
+        cameraBtn.addEventListener("click", function () {
+            camera.position.x = xMax / 2;
+            camera.position.z = 0;
+            camera.position.y = 50;
+            camera.lookAt(xMax / 2, 50, 5);
+        });
         handleCameraKeyPress(camera);
 
         let mountainPoints = [];
@@ -517,6 +524,13 @@ function main() {
                     scene.remove(scene.children[0]);
                 }
                 drawTriangleFaces(dcel, scene, heightColorTable, maxMountainHeight + minValleyDepth, minValleyDepth);
+                var geometry = new THREE.PlaneGeometry(xMax, zMax, 1, 1);
+                var material = new THREE.MeshBasicMaterial({color: 0x0033ee, side: THREE.DoubleSide});
+                var plane = new THREE.Mesh(geometry, material);
+                plane.position.set(xMax / 2, 0, zMax / 2);
+                plane.rotation.set(degToRad(90), 0, minValleyDepth / 2);
+                scene.add(plane);
+
                 applyMesh = false;
                 isTerrainDrawn = true;
                 heightBtn.innerText = "Show Mesh";
