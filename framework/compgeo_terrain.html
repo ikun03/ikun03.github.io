@@ -11,6 +11,11 @@
             margin-left: auto;
             margin-right: auto;
         }
+
+        td {
+            padding: 10px;
+            margin: 1px;
+        }
     </style>
 </head>
 <body>
@@ -22,7 +27,13 @@
         <br>
         You can play around with the variables to control the terrain being generated.
         <br>
+        <b style="color: lightseagreen">Controls: <br><u>W</u> for forward<br> <u>S</u> for backward<br> <u>A</u> for
+            looking to the left<br>
+            <u>D</u> for looking to the
+            right<br> <u>Q</u> and <u>E</u> to roll<br> <u>Arrow Up</u> to look up <br> <u>Arrow Down</u> to look down.
+        </b>
     </p>
+
     <form style="font-size: x-large;">
         <table>
             <tr>
@@ -68,6 +79,12 @@
                         Reset Camera
                     </button>
                 </td>
+            </tr>
+            <tr>
+                <td>
+                    <input style="width: 20px; height: 20px" type="checkbox" id="showCalc" checked> Show Triangulation
+                </td>
+                <td></td>
             </tr>
         </table>
     </form>

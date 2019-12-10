@@ -404,6 +404,7 @@ function main() {
     let dcel;
     let heightBtn = document.getElementById("heightBtn");
     let cameraBtn = document.getElementById("cameraBtn");
+    let checkBoxTriangulation = document.getElementById("showCalc");
     let drawWireFrame;
 
 
@@ -496,6 +497,12 @@ function main() {
         let then = 0;
         let time = 0;
         let isChanged = true;
+        let waitVal = 0;
+        if (checkBoxTriangulation.checked) {
+            waitVal = 0.05;
+        } else {
+            waitVal = 0;
+        }
 
         function animate(now) {
 
@@ -505,7 +512,7 @@ function main() {
             then = now;
             time += delta;
 
-            if (time > 0.05 && counter < points.length) {
+            if (time > waitVal && counter < points.length) {
                 let vertex = getVertex(points[counter], pointCounter++);
                 pointNames.push(vertex.vertexName);
                 dcel.addVertex(vertex);
@@ -537,7 +544,7 @@ function main() {
                 heightBtn.innerText = "Show Mesh";
 
             } else {
-                if (isChanged) {
+                if (isChanged && (checkBoxTriangulation.checked || counter === points.length)) {
                     isChanged = false;
                     while (scene.children.length > 0) {
                         scene.remove(scene.children[0]);
@@ -549,7 +556,7 @@ function main() {
                     drawWireFrame = true;
                 }
             }
-            if (drawWireFrame) {
+            if (drawWireFrame && (counter === points.length || checkBoxTriangulation.checked)) {
                 if (isTerrainDrawn) {
                     heightBtn.innerText = "Hide Mesh";
                 }
