@@ -25,6 +25,14 @@
         triangulation to
         generate terrain.
         <br>
+        Steps:
+        <br>
+        1. Press Generate to start point generation. Wait until mesh has been created from all the points.
+        <br>
+        2. After that press Apply Height Map for applying the height map.
+        <br>
+        3. After that press Apply Mesh to apply the generated terrain mesh.
+        <br>
         You can play around with the variables to control the terrain being generated.
         <br>
         <b style="color: lightseagreen">Controls: <br><u>W</u> for forward<br> <u>S</u> for backward<br> <u>A</u> for
@@ -45,7 +53,7 @@
             </tr>
             <tr>
                 <td>No. of points:</td>
-                <td><input type="text" id="pointCt" value="1000"></td>
+                <td><input type="text" id="pointCt" value="200"></td>
 
                 <td>No. of mountains to generate:</td>
                 <td><input type="text" id="mountains" value="5"></td>
@@ -61,7 +69,8 @@
                 <td>Minimum Valley Depth:</td>
                 <td><input type="text" id="minDepth" value="50"></td>
                 <td>
-                    <button style="font-size: large" type="button" id="generateBtn">
+                    <button style="font-size: large; color: red " type="button"
+                            id="generateBtn">
                         Generate
                     </button>
                     <button style="font-size: large" type="button" id="stopBtn">
