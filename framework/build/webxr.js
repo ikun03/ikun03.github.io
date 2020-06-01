@@ -70,7 +70,7 @@
     window.addEventListener('resize', onResize, true);
     window.addEventListener('keyup', onKeyUp, false);
 
-    // dispatched by index.html
+    // dispatched by run1234.html
     document.addEventListener('UnityLoaded', onUnityLoaded, false);
     document.addEventListener('Unity', onUnityMessage, false);
 
@@ -164,7 +164,7 @@
   }
 
   XRManager.prototype.unityProgressStart = new Promise(function (resolve) {
-    // dispatched by index.html
+    // dispatched by run1234.html
     document.addEventListener('UnityProgressStart', function (evt) {
       resolve(window.gameInstance);
     }, false);
