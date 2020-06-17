@@ -56,6 +56,7 @@ function processMotion(bvhArray, indexToProcess) {
 
             index++;
             while (bvhArray[index] !== "}") {
+                //Recursively process successive joints as they are encountered
                 if (bvhArray[index] === "JOINT") {
                     let resultArray = processMotion(bvhArray, index);
                     index = resultArray[0];
@@ -198,8 +199,8 @@ function main() {
 
     //Let us process the file
     let bvhTabArray = bvh.replace(/\t|\n|\s/g, "??")
-    //.replace(/\n/g, "??")
-    //.replace(/\s/g, "??")
+        //.replace(/\n/g, "??")
+        //.replace(/\s/g, "??")
         .split(/[?]+/g);
     let stringIndex = 0;
     //First let us create a hierarchy object
