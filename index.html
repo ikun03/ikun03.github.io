@@ -8,32 +8,61 @@
     <title>Kunal's homepage</title>
 </head>
 <body>
-<h1 class="pixel_text">
-    Kunal's homepage
-</h1>
-<div id="comp_anim" style="line-height:30px">
-    <a href="framework/comp_anim.html">Computer Animation</a>
-    <br>
-    <a href="framework/compgeo_project.html">Pedagogical Aid for Procedural Terrain Generation using Delaunay
-        triangulation</a>
-    <br>
-    <a href="framework/shading_project.html">Procedural Shading: Crepescular Rays</a>
-</div>
-<div>
-    <a><!--Description here please--></a>
-</div>
-<div id="thesis_draft" style="line-height:30px">
-    <a href="framework/thesis_draft.html">Master's Thesis</a>
-</div>
-<div id="links-resume" style="line-height: 30px">
-    <a href="https://github.com/ikun03">
-        <i class="fa fa-github" style="font-size:48px;color: lightseagreen">&nbsp;</i></a>
-    <a href="https://www.linkedin.com/in/kunal-shitut-311842100/">
-        <i class="fa fa-linkedin-square" style="font-size: 48px;color: lightseagreen"></i></a>
-</div>
+<header class ="hero-section">
+    <h1 class="pixel_text">Kunal Shitut</h1>
+    <p class="experience-highlight">7+ Years of Professional Development Experience</p>
+    <p class = "tagline">Full-stack Developer •  Mobile Development • Computer Graphics • AR/VR • </p>
+    <nav class="main-nav">
+            <a href="#about">About</a>
+            <a href="#Projects">Projects</a>
+            <a href="#blog">Blog</a>
+            <a href="#contact">Contact</a>
+    </nav>
+     <div class="header-social-links">
+      <a href="https://github.com/ikun03">
+          <i class="fa fa-github" style="font-size:36px;color:lightseagreen"></i>
+      </a>
+      <a href="https://www.linkedin.com/in/kuna
+  l-shitut-311842100/">
+          <i class="fa fa-linkedin" style="font-size:36px;color:lightseagreen"></i>
+      </a>
+  </div>
+</header>
+<main> 
+    <section id="projects"
+    class="projects-section">
+        <h2 class="pixel_text">Featured Projects</h2>
+        <div class="project-grid">
+            <div class="project-card">
+                <a href="framework/comp_anim.html">
+                <h3>Computer Animation</h3>
+                <p class="project-description">Interactive animations with WebGL and Three.js</p>
+                </a>
+            </div>
+
+            <div class="project-card">
+                <a href="framework/compgeo_project.html">
+                <h3>Terrain Generation</h3>
+                <p class="project-description">Pedagogical tool using Delaunay triangulation</p>
+                </a>
+            </div>
+
+            <div class="project-card">
+                <a href="framework/shading_project.html">
+                <h3>Procedural Shading</h3>
+                <p class="project-description">Crepescular rays implementation</p>
+                </a>
+            </div>
 
 
-<!--The reason we load javascript at the end is so that it work with the html elements that it is intended to work with.-->
-<script src="scripts/main.js"></script>
+            <div class="project-card">
+                <a href="framework/thesis_draft.html">
+                <h3>Master's Thesis</h3>
+                <p class="project-description">AR/VR characters for museum experiences</p>
+                </a>
+            </div>
+        </div>
+    </section>
+    <script src ="scripts/main.js"></script>
 </body>
 </html>
