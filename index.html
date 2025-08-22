@@ -10,13 +10,12 @@
 <body>
 <header class ="hero-section">
     <h1 class="pixel_text">Kunal Shitut</h1>
-    <p class="experience-highlight">7+ Years of Professional Development Experience</p>
     <p class = "tagline">Full-stack Developer •  Mobile Development • Computer Graphics • AR/VR • </p>
+    <p class="experience-highlight">Currently playing real-life Factorio at Intel.</p>
     <nav class="main-nav">
             <a href="#about">About</a>
-            <a href="#Projects">Projects</a>
-            <a href="#blog">Blog</a>
-            <a href="#contact">Contact</a>
+            <a href="#projects">Projects</a>
+            <a href="blog.html">Blog</a>
     </nav>
      <div class="header-social-links">
       <a href="https://github.com/ikun03">
@@ -29,10 +28,26 @@
   </div>
 </header>
 <main> 
+
+    <section id="about" class="about-section">
+        <h2 class="pixel_text" style="text-align: center;">About Me</h2>
+        <p class="about-text">
+            Software Engineer with <span id="experience-years">7</span> years of experience in manufacturing automation, retail, corporate services, and education domains.   
+            I am an expert in working with legacy systems and building modern scalable applications. 
+             
+        </p>
+    </section>
     <section id="projects"
     class="projects-section">
         <h2 class="pixel_text">Featured Projects</h2>
         <div class="project-grid">
+
+            <div class="project-card">
+                <a href="framework/thesis_draft.html">
+                <h3>Master's Thesis</h3>
+                <p class="project-description">AR/VR characters for museum experiences</p>
+                </a>
+            </div>
             <div class="project-card">
                 <a href="framework/comp_anim.html">
                 <h3>Computer Animation</h3>
@@ -47,22 +62,10 @@
                 </a>
             </div>
 
-            <div class="project-card">
-                <a href="framework/shading_project.html">
-                <h3>Procedural Shading</h3>
-                <p class="project-description">Crepescular rays implementation</p>
-                </a>
-            </div>
 
-
-            <div class="project-card">
-                <a href="framework/thesis_draft.html">
-                <h3>Master's Thesis</h3>
-                <p class="project-description">AR/VR characters for museum experiences</p>
-                </a>
-            </div>
         </div>
     </section>
+
     <script src ="scripts/main.js"></script>
 </body>
 </html>

@@ -28,7 +28,7 @@ h1 {
 
 .pixel_text {
     font-family: "Press Start 2P", "Times New Roman", serif;
-    font-size: medium;
+    font-size: larger;
     color: lightseagreen;
     line-height: 25px;
 }
@@ -124,7 +124,7 @@ input[type=text] {
 /* Modern Layout Styles */
 .hero-section {
     text-align: center;
-    padding: 60px 20px;
+    padding: 30px 20px;
     max-width: 800px;
     margin: 0 auto;
 }
@@ -162,6 +162,76 @@ input[type=text] {
     margin: 60px auto;
     padding: 0 20px;
     text-align: center;
+}
+
+.about-section {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 40px;
+}
+
+.blog-list {
+    text-align: left;
+}
+
+.blog-post-item {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.blog-post-item:last-child {
+    border-bottom: none;
+}
+
+.blog-post-item h3 {
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.blog-post-item h3 a {
+    color: lightseagreen;
+    text-decoration: none;
+}
+
+.blog-post-item h3 a:hover {
+    text-decoration: underline;
+}
+
+.post-date {
+    color: #666;
+    font-size: 0.9em;
+    margin: 5px 0 10px 0;
+}
+
+.post-excerpt {
+    color: #555;
+    line-height: 1.5;
+    margin: 10px 0 0 0;
+}
+
+.blog-post-content {
+    text-align: left;
+}
+
+.blog-post-content h1, .blog-post-content h2, .blog-post-content h3 {
+    color: lightseagreen;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.blog-post-content p {
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.blog-post-content a {
+    color: lightseagreen;
+}
+
+.blog-post-content a:hover {
+    text-decoration: underline;
 }
 
 .project-grid {

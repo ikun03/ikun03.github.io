@@ -1,0 +1,28 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{page.title}}</title>
+<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/stylesheets/default_style.css">
+</head>
+<body>
+<header class="hero-section">
+    <h1 class="pixel_text">{{ page.title}}</h1>
+    <p class="experience-highlight">{{page.date | date: "%B %d, %Y"}}</p>
+    <nav class="main-nav">
+        <a href="/">Home</a>
+        <a href="/blog.html">← Back to Blog</a>
+    </nav>
+</header>
+<main> 
+    <article class="about-section blog-post-content">
+        {{content}}
+    </article>
+</main>
+
+
+</body>
+</html>

@@ -1,3 +1,27 @@
-/node_modules/three/
+# Node.js
+/node_modules/
+npm-debug.log*
+
+# IDEs
 /.idea/
-**/.DS_Store
+.vscode/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+
+# Jekyll
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler
+Gemfile.lock
+vendor/
+.bundle/
+
+# Ruby
+*.gem
+.rbenv-version
