@@ -211,7 +211,7 @@ input[type=text] {
 }
 
 .blog-post-content {
-    text-align: left;
+    text-align: justify !important;
 }
 
 .blog-post-content h1, .blog-post-content h2, .blog-post-content h3 {
