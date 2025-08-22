@@ -224,7 +224,7 @@ input[type=text] {
     line-height: 1.6;
     margin-bottom: 20px;
     color: #333;
-    text-align: justify;
+    text-align: justify !important;
 }
 
 .blog-post-content a {
