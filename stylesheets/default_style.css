@@ -165,9 +165,9 @@ input[type=text] {
 }
 
 .about-section {
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 40px;
+    max-width: 600px !important;
+    margin: 60px auto !important;
+    padding: 40px !important;
 }
 
 .blog-list {
